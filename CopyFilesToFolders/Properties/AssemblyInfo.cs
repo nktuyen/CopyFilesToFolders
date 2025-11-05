@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("CopyFilesToFolders")]
-[assembly: AssemblyDescription("CopyFilesToFolders")]
+[assembly: AssemblyDescription("Copy files to specified directories")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("NKTUYEN")]
 [assembly: AssemblyProduct("CopyFilesToFolders")]
-[assembly: AssemblyCopyright("Copyright ©  2025")]
+[assembly: AssemblyCopyright("Copyright ©  2025 - nktuyen@hotmail.com")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
