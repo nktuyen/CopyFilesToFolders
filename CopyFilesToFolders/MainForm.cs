@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 
 namespace CopyFilesToFolders
 {
@@ -25,7 +26,7 @@ namespace CopyFilesToFolders
         private bool LoadRecentFilesAtStartup { get; set; }
         private List<string> RecentFiles { get; set; }
         private List<DestinationItem> DestinationItems { get; set; }
-
+        private List<IFilter> FileFilters { get; set; }
         public MainForm()
         {
             InitializeComponent();
@@ -36,6 +37,9 @@ namespace CopyFilesToFolders
             this.LoadRecentFilesAtStartup = false;
             this.RecentFiles = new List<string>();
             this.DestinationItems = new List<DestinationItem>();
+            this.FileFilters = new List<IFilter>();
+            this.FileFilters.Add(new NameFilter());
+            this.FileFilters.Add(new SizeFilter());
         }
 
         private bool LoadSettings()
@@ -383,17 +387,20 @@ namespace CopyFilesToFolders
 
         private void ArrangeControls()
         {
+            MainPanel.Controls.Clear();
             MainPanel.Location = new Point(MainList.Left, MainList.Top + MainList.Height + this.DestinationSpacing);
             MainPanel.Size = new Size(MainList.Width, MainPanel.Height);
-            if (MainPanel.Controls.Count >= 4)
+            if (this.DestinationItems.Count >= 4)
                 this.DestinationRightPadding = 20;
             else
                 this.DestinationRightPadding = this.DestinationSpacing;
 
             this.DestinationTop = 0;
             int count = 1;
-            foreach (DestinationItem ctrl in MainPanel.Controls)
+            foreach (DestinationItem ctrl in this.DestinationItems)
             {
+                ctrl.Parent = MainPanel;
+                MainPanel.Controls.Add(ctrl);
                 ctrl.Size = new System.Drawing.Size(MainPanel.Width - this.DestinationRightPadding, this.DestinationHeight);
                 ctrl.Location = new Point(0, DestinationTop);
                 ctrl.Title = string.Format("Destination {0}", count++);
@@ -408,7 +415,6 @@ namespace CopyFilesToFolders
             {
                 DestinationItem destItem = new DestinationItem();
                 destItem.Visible = true;
-                destItem.Parent = MainPanel;
                 destItem.Location = new Point(0, DestinationTop);
                 destItem.HasCustomButton = true;
                 destItem.CustomButtonText = "X";
@@ -424,7 +430,6 @@ namespace CopyFilesToFolders
                 destItem.CopyButtonClicked += new EventHandler(CopyButton_Click);
                 destItem.CustomButtonClicked += new EventHandler(RemoveDestinationButton_Click);
                 
-                MainPanel.Controls.Add(destItem);
                 this.DestinationItems.Add(destItem);
 
                 DestinationTop += destItem.Height;
@@ -466,8 +471,22 @@ namespace CopyFilesToFolders
             DestinationItem item = sender as DestinationItem;
             if (!System.IO.Directory.Exists(item.Path))
             {
-                MessageBox.Show(string.Format("Directory \"{0}\" is not exist", item.Path), "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                if(MessageBox.Show(string.Format("Directory \"{0}\" is not exist.\nDo you want to create it?", item.Path), "Error", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+                {
+                    try
+                    {
+                        System.IO.Directory.CreateDirectory(item.Path);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                }
+                else
+                {
+                    return;
+                }
             }
 
             string sourceFilePath = string.Empty;
@@ -475,6 +494,7 @@ namespace CopyFilesToFolders
             System.IO.FileInfo sourceFileInfo = null;
             foreach (ListViewItem listItem in MainList.Items)
             {
+                MainList.EnsureVisible(listItem.Index);
                 sourceFilePath = listItem.SubItems[1].Text;
                 try
                 {
@@ -497,6 +517,24 @@ namespace CopyFilesToFolders
             ArrangeControls();
         }
 
+        private void FiltersSettingsMenu_Clicked(object sender, EventArgs e)
+        {
+            FiltersSettingsForm frm=new FiltersSettingsForm(this.FileFilters);
+            if (frm.ShowDialog() != DialogResult.OK)
+                return;
+        }
+
+        private void FilterMenuItem_Clicked(object sender, EventArgs e)
+        {
+            ToolStripMenuItem menuItem = (ToolStripMenuItem)sender;
+            IFilter filter = (IFilter)menuItem.Tag;
+            if (filter != null)
+            {
+                filter.Enabled = !filter.Enabled;
+                menuItem.Checked = filter.Enabled;
+            }
+        }
+
         private void MainForm_Load(object sender, EventArgs e)
         {
             LoadSettings();
@@ -511,6 +549,21 @@ namespace CopyFilesToFolders
             if (this.LoadRecentFilesAtStartup && this.RecentFiles.Count > 0)
             {
                 bgwAddFiles.RunWorkerAsync(this.RecentFiles.ToArray());
+            }
+
+            foreach(IFilter filter in this.FileFilters)
+            {
+                ToolStripMenuItem menuItem = (ToolStripMenuItem)optionsToolStripMenuItem.DropDownItems.Add(filter.Description);
+                menuItem.Tag = filter;
+                menuItem.Checked = filter.Enabled;
+                menuItem.Click += new EventHandler(FilterMenuItem_Clicked);
+            }
+            if (this.FileFilters.Count > 0)
+            {
+                optionsToolStripMenuItem.DropDownItems.Add("-");
+                ToolStripItem filterSettingsItem = optionsToolStripMenuItem.DropDownItems.Add("Filters settings");
+                filterSettingsItem.Image = Properties.Resources.Settings.ToBitmap();
+                filterSettingsItem.Click += new EventHandler(FiltersSettingsMenu_Clicked);
             }
 
             this.RecentFiles.Clear();
@@ -541,24 +594,9 @@ namespace CopyFilesToFolders
                 if (files.Length <= 0)
                     return;
 
-                System.IO.FileInfo fi = null;
-                try
-                {
-                    fi = new FileInfo(files[0]);
-                    if((fi.Attributes & FileAttributes.Directory) != 0)
-                    {
-                        bgwAddFilesInFolder.RunWorkerAsync(files[0]);
-                        return;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                }
-
-                if (bgwAddFiles.IsBusy)
-                    bgwAddFiles.CancelAsync();
-                bgwAddFiles.RunWorkerAsync(files);
+                if (bgwAddFilesInFolder.IsBusy)
+                    bgwAddFilesInFolder.CancelAsync();
+                bgwAddFilesInFolder.RunWorkerAsync(files);
             }
         }
 
@@ -619,7 +657,7 @@ namespace CopyFilesToFolders
 
             if (bgwAddFilesInFolder.IsBusy)
                 bgwAddFilesInFolder.CancelAsync();
-            bgwAddFilesInFolder.RunWorkerAsync(dlgFolder.SelectedPath);
+            bgwAddFilesInFolder.RunWorkerAsync(new string[] { dlgFolder.SelectedPath });
         }
 
         private void WalkDir(string dirName, int currentDepth, int maxDepth = -1)
@@ -698,6 +736,8 @@ namespace CopyFilesToFolders
                     EnableControl(btnAddDestinationItem, false);
                     EnableControl(MainMenu, false);
                     EnableControl(FileListContextMenu, false);
+
+                    MainList.AllowDrop = false;
                 }));
             }
             else
@@ -718,6 +758,8 @@ namespace CopyFilesToFolders
                 EnableControl(btnAddDestinationItem, false);
                 EnableControl(MainMenu, false);
                 EnableControl(FileListContextMenu, false);
+
+                MainList.AllowDrop = false;
             }
         }
 
@@ -725,8 +767,49 @@ namespace CopyFilesToFolders
         {
             bgwAddFilesInFolder_Prepare(sender, e);
 
-            string directoryPath = e.Argument as string;
-            WalkDir(directoryPath, 0);
+            string[] paths = e.Argument as string[];
+            FileInfo fi = null;
+            ListViewItem item = null;
+            foreach (string filePath in paths)
+            {
+                if (bgwAddFiles.CancellationPending)
+                    break;
+
+                try
+                {
+                    fi = new FileInfo(filePath);
+                }
+                catch (Exception ex)
+                {
+                    Debug.Print(ex.Message);
+                    continue;
+                }
+
+                if ((fi.Attributes & FileAttributes.Directory) == FileAttributes.Directory)
+                {
+                    WalkDir(filePath, 0);
+                }
+                else
+                {
+                    bgwAddFilesInFolder.ReportProgress(100, filePath);
+
+                    if (this.InvokeRequired)
+                    {
+                        this.Invoke(new MethodInvoker(delegate
+                        {
+                            item = MainList.Items.Add(string.Format("{0}", (MainList.Items.Count + 1).ToString()));
+                            item.SubItems.Add(filePath);
+                            item.SubItems.Add(string.Empty);
+                        }));
+                    }
+                    else
+                    {
+                        item = MainList.Items.Add(string.Format("{0}", (MainList.Items.Count + 1).ToString()));
+                        item.SubItems.Add(filePath);
+                        item.SubItems.Add(string.Empty);
+                    }
+                }
+            }
         }
 
         private void bgwAddFilesInFolder_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -769,6 +852,8 @@ namespace CopyFilesToFolders
                     btnRemoveSelectedFiles.Enabled = MainList.SelectedIndices.Count > 0;
                     btnRemoveAllFiles.Enabled = MainList.Items.Count > 0;
 
+                    MainList.AllowDrop = true;
+
                 }));
             }
             else
@@ -786,6 +871,8 @@ namespace CopyFilesToFolders
 
                 btnRemoveSelectedFiles.Enabled = MainList.SelectedIndices.Count > 0;
                 btnRemoveAllFiles.Enabled = MainList.Items.Count > 0;
+
+                MainList.AllowDrop = true;
             }
         }
 
@@ -812,6 +899,8 @@ namespace CopyFilesToFolders
                     EnableControl(btnAddDestinationItem, false);
                     EnableControl(MainMenu, false);
                     EnableControl(FileListContextMenu, false);
+
+                    MainList.AllowDrop = false;
                 }));
             }
             else
@@ -830,6 +919,8 @@ namespace CopyFilesToFolders
                 EnableControl(btnAddDestinationItem, false);
                 EnableControl(MainMenu, false);
                 EnableControl(FileListContextMenu, false);
+
+                MainList.AllowDrop = false;
             }
         }
         private void bgwAddFiles_DoWork(object sender, DoWorkEventArgs e)
@@ -917,6 +1008,8 @@ namespace CopyFilesToFolders
                     btnRemoveSelectedFiles.Enabled = MainList.SelectedIndices.Count > 0;
                     btnRemoveAllFiles.Enabled = MainList.Items.Count > 0;
 
+                    MainList.AllowDrop = true;
+
                 }));
             }
             else
@@ -934,6 +1027,8 @@ namespace CopyFilesToFolders
 
                 btnRemoveSelectedFiles.Enabled = MainList.SelectedIndices.Count > 0;
                 btnRemoveAllFiles.Enabled = MainList.Items.Count > 0;
+
+                MainList.AllowDrop = true;
             }
         }
 
@@ -1034,7 +1129,7 @@ namespace CopyFilesToFolders
             }
             catch (System.Exception ex)
             {
-            	
+                Debug.Print(ex.Message);
             }
         }
     }

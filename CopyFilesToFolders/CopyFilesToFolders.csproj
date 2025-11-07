@@ -53,6 +53,13 @@
     <Compile Include="DestinationItem.Designer.cs">
       <DependentUpon>DestinationItem.cs</DependentUpon>
     </Compile>
+    <Compile Include="FiltersSettingsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FiltersSettingsForm.Designer.cs">
+      <DependentUpon>FiltersSettingsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="IFilter.cs" />
     <Compile Include="ListViewEx.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -65,10 +72,15 @@
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="NameFilter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SizeFilter.cs" />
     <EmbeddedResource Include="DestinationItem.resx">
       <DependentUpon>DestinationItem.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FiltersSettingsForm.resx">
+      <DependentUpon>FiltersSettingsForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ListViewEx.resx">
       <DependentUpon>ListViewEx.cs</DependentUpon>
@@ -101,6 +113,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="CopyFilesToFolders.ico" />
+    <None Include="Properties\Settings.ico" />
     <None Include="Properties\Delete.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
