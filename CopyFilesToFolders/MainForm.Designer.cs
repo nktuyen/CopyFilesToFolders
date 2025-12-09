@@ -58,11 +58,14 @@
             this.addFilesInFolderContextMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.removeContextMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.removeAllContextMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
+            this.copyPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MainImgList = new System.Windows.Forms.ImageList(this.components);
             this.MainList = new CopyFilesToFolders.ListViewEx();
             this.colNb = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colPath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.showInExplorerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MainMenu.SuspendLayout();
             this.FileListContextMenu.SuspendLayout();
             this.SuspendLayout();
@@ -268,7 +271,7 @@
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.aboutToolStripMenuItem.Text = "&About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
@@ -278,38 +281,53 @@
             this.addFilesContextMenuItem,
             this.addFilesInFolderContextMenuItem,
             this.removeContextMenuItem,
-            this.removeAllContextMenuItem});
+            this.removeAllContextMenuItem,
+            this.toolStripMenuItem2,
+            this.copyPathToolStripMenuItem,
+            this.showInExplorerToolStripMenuItem});
             this.FileListContextMenu.Name = "FileListContextMenu";
-            this.FileListContextMenu.Size = new System.Drawing.Size(172, 92);
+            this.FileListContextMenu.Size = new System.Drawing.Size(181, 164);
             this.FileListContextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.FileListContextMenu_Opening);
             // 
             // addFilesContextMenuItem
             // 
             this.addFilesContextMenuItem.Name = "addFilesContextMenuItem";
-            this.addFilesContextMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.addFilesContextMenuItem.Size = new System.Drawing.Size(180, 22);
             this.addFilesContextMenuItem.Text = "Add Files";
             this.addFilesContextMenuItem.Click += new System.EventHandler(this.addFilesContextMenuItem_Click);
             // 
             // addFilesInFolderContextMenuItem
             // 
             this.addFilesInFolderContextMenuItem.Name = "addFilesInFolderContextMenuItem";
-            this.addFilesInFolderContextMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.addFilesInFolderContextMenuItem.Size = new System.Drawing.Size(180, 22);
             this.addFilesInFolderContextMenuItem.Text = "Add Files in Folder";
             this.addFilesInFolderContextMenuItem.Click += new System.EventHandler(this.addFilesInFolderContextMenuItem_Click);
             // 
             // removeContextMenuItem
             // 
             this.removeContextMenuItem.Name = "removeContextMenuItem";
-            this.removeContextMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.removeContextMenuItem.Size = new System.Drawing.Size(180, 22);
             this.removeContextMenuItem.Text = "Remove";
             this.removeContextMenuItem.Click += new System.EventHandler(this.removeContextMenuItem_Click);
             // 
             // removeAllContextMenuItem
             // 
             this.removeAllContextMenuItem.Name = "removeAllContextMenuItem";
-            this.removeAllContextMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.removeAllContextMenuItem.Size = new System.Drawing.Size(180, 22);
             this.removeAllContextMenuItem.Text = "Remove All";
             this.removeAllContextMenuItem.Click += new System.EventHandler(this.removeAllContextMenuItem_Click);
+            // 
+            // toolStripMenuItem2
+            // 
+            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(177, 6);
+            // 
+            // copyPathToolStripMenuItem
+            // 
+            this.copyPathToolStripMenuItem.Name = "copyPathToolStripMenuItem";
+            this.copyPathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.copyPathToolStripMenuItem.Text = "Copy Path";
+            this.copyPathToolStripMenuItem.Click += new System.EventHandler(this.copyPathToolStripMenuItem_Click);
             // 
             // MainImgList
             // 
@@ -358,6 +376,13 @@
             // 
             this.colStatus.Text = "Status";
             this.colStatus.Width = 100;
+            // 
+            // showInExplorerToolStripMenuItem
+            // 
+            this.showInExplorerToolStripMenuItem.Name = "showInExplorerToolStripMenuItem";
+            this.showInExplorerToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.showInExplorerToolStripMenuItem.Text = "Show in Explorer";
+            this.showInExplorerToolStripMenuItem.Click += new System.EventHandler(this.showInExplorerToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -429,6 +454,9 @@
         private System.Windows.Forms.ImageList MainImgList;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
+        private System.Windows.Forms.ToolStripMenuItem copyPathToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem showInExplorerToolStripMenuItem;
     }
 }
 

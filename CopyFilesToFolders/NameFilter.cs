@@ -5,6 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
+using System.Windows.Forms;
+using Microsoft.Win32;
+using System.Security.AccessControl;
 
 namespace CopyFilesToFolders
 {
@@ -45,6 +48,116 @@ namespace CopyFilesToFolders
                     nMatched++;
             }
             return nMatched > 0;
+        }
+
+        public DialogResult ShowSettings(IWin32Window owner = null)
+        {
+            NameFilterSettingsForm frm = new NameFilterSettingsForm();
+            frm.Wildcard = this.Wildcard;
+            DialogResult res = frm.ShowDialog(owner);
+            if (res == DialogResult.OK)
+            {
+                this.Wildcard = frm.Wildcard;
+            }
+
+            return res;
+        }
+
+        public bool SaveSettings(RegistryKey registryKey)
+        {
+            if (registryKey == null)
+                return false;
+
+            RegistryKey subKey = null;
+            try
+            {
+                subKey = registryKey.OpenSubKey(this.Name, true);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.Print(ex.Message);
+            }
+
+            if(subKey == null)
+            {
+                try
+                {
+                    subKey = registryKey.CreateSubKey(this.Name, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.Print(ex.Message);
+                }
+            }
+
+            if (subKey == null)
+                return false;
+
+            try
+            {
+                subKey.SetValue("Wildcard", this.Wildcard);
+                subKey.SetValue("Enabled", this.Enabled ? 1 : 0, RegistryValueKind.DWord);
+                subKey.Close();
+            }
+            catch (System.Exception ex)
+            {
+                Debug.Print(ex.Message);
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool LoadSettings(RegistryKey registryKey)
+        {
+            if (registryKey == null)
+                return false;
+
+            RegistryKey subKey = null;
+            try
+            {
+                subKey = registryKey.OpenSubKey(this.Name, true);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.Print(ex.Message);
+            }
+
+            if (subKey == null)
+            {
+                try
+                {
+                    subKey = registryKey.CreateSubKey(this.Name, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.Print(ex.Message);
+                }
+            }
+
+            if (subKey == null)
+                return false;
+
+            object objWildcard = null;
+            object objEnabled = null;
+            try
+            {
+                objWildcard = subKey.GetValue("Wildcard") as string;
+                objEnabled = subKey.GetValue("Enabled");
+                subKey.Close();
+
+                if (objWildcard != null)
+                    this.Wildcard = objWildcard as string;
+                if (objEnabled != null)
+                    this.Enabled = (int)objEnabled != 0;
+            }
+            catch (System.Exception ex)
+            {
+                Debug.Print(ex.Message);
+                return false;
+            }
+
+            return true;
         }
     }
 }

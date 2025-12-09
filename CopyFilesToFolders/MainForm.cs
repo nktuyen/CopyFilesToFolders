@@ -39,13 +39,13 @@ namespace CopyFilesToFolders
             this.DestinationItems = new List<DestinationItem>();
             this.FileFilters = new List<IFilter>();
             this.FileFilters.Add(new NameFilter());
-            this.FileFilters.Add(new SizeFilter());
         }
 
         private bool LoadSettings()
         {
             string settingsKeyName = "Settings";
             string destinationListKeyName = "DestinationList";
+            string filtersKeyName = "Filters";
             Assembly asm = Assembly.GetExecutingAssembly();
             FileVersionInfo fvi= FileVersionInfo.GetVersionInfo(asm.Location);
             RegistryKey mainKey = null;
@@ -115,41 +115,6 @@ namespace CopyFilesToFolders
                 if (objLoadRecentFilesAtStartup != null)
                 {
                     this.LoadRecentFilesAtStartup = ((int)objLoadRecentFilesAtStartup != 0);
-                }
-            }
-
-            if (this.LoadRecentFilesAtStartup)
-            {
-                this.RecentFiles.Clear();
-                System.IO.StreamReader reader = null;
-                System.IO.FileInfo fi = null;
-                string filePath = string.Empty;
-                try
-                {
-                    fi = new System.IO.FileInfo(asm.Location);
-                    reader = new System.IO.StreamReader(System.IO.Path.Combine(fi.DirectoryName, "RecentFiles.txt"), Encoding.UTF8);
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                }
-                if (reader != null)
-                {
-                    filePath = reader.ReadLine();
-                    while (filePath != null)
-                    {
-                        try
-                        {
-                            fi = new System.IO.FileInfo(filePath);
-                            this.RecentFiles.Add(fi.FullName);
-                        }
-                        catch (System.Exception ex)
-                        {
-                            Debug.Print(ex.Message);
-                        }
-                        filePath = reader.ReadLine();
-                    }
-                    reader.Close();
                 }
             }
 
@@ -234,6 +199,78 @@ namespace CopyFilesToFolders
                 }
             }
 
+            RegistryKey filtersKey = null;
+            try
+            {
+                filtersKey = mainKey.OpenSubKey(filtersKeyName, true);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.Print(ex.Message);
+            }
+
+            if (filtersKey == null)
+            {
+                try
+                {
+                    filtersKey = mainKey.CreateSubKey(filtersKeyName, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.Print(ex.Message);
+                }
+            }
+
+            if (filtersKey != null && this.FileFilters.Count>0)
+            {
+                foreach(IFilter filter in this.FileFilters)
+                {
+                    filter.LoadSettings(filtersKey);
+                }
+            }
+
+            if (this.LoadRecentFilesAtStartup)
+            {
+                this.RecentFiles.Clear();
+                System.IO.StreamReader reader = null;
+                System.IO.FileInfo fi = null;
+                string filePath = string.Empty;
+                try
+                {
+                    fi = new System.IO.FileInfo(asm.Location);
+                    reader = new System.IO.StreamReader(System.IO.Path.Combine(fi.DirectoryName, "RecentFiles.txt"), Encoding.UTF8);
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.Print(ex.Message);
+                }
+                if (reader != null)
+                {
+                    filePath = reader.ReadLine();
+                    while (filePath != null)
+                    {
+                        try
+                        {
+                            fi = new System.IO.FileInfo(filePath);
+                            foreach (IFilter filter in this.FileFilters)
+                            {
+                                if (filter.Filter(fi.FullName))
+                                {
+                                    this.RecentFiles.Add(fi.FullName);
+                                    break;
+                                }
+                            }
+                        }
+                        catch (System.Exception ex)
+                        {
+                            Debug.Print(ex.Message);
+                        }
+                        filePath = reader.ReadLine();
+                    }
+                    reader.Close();
+                }
+            }
+
             return true;
         }
 
@@ -241,6 +278,7 @@ namespace CopyFilesToFolders
         {
             string settingsKeyName = "Settings";
             string destinationListKeyName = "DestinationList";
+            string filterKeyName = "Filters";
             Assembly asm = Assembly.GetExecutingAssembly();
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(asm.Location);
             RegistryKey mainKey = null;
@@ -368,6 +406,36 @@ namespace CopyFilesToFolders
                     j++;
                 }
                 destListKey.SetValue("", j.ToString());
+            }
+
+            RegistryKey filtersKey = null;
+            try
+            {
+                filtersKey = mainKey.OpenSubKey(filterKeyName, true);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.Print(ex.Message);
+            }
+
+            if (filtersKey == null)
+            {
+                try
+                {
+                    filtersKey = mainKey.CreateSubKey(filterKeyName, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.Print(ex.Message);
+                }
+            }
+
+            if (filtersKey != null && this.FileFilters.Count > 0)
+            {
+                foreach (IFilter filter in this.FileFilters)
+                {
+                    filter.SaveSettings(filtersKey);
+                }
             }
 
             return true;
@@ -519,9 +587,15 @@ namespace CopyFilesToFolders
 
         private void FiltersSettingsMenu_Clicked(object sender, EventArgs e)
         {
-            FiltersSettingsForm frm=new FiltersSettingsForm(this.FileFilters);
-            if (frm.ShowDialog() != DialogResult.OK)
+            ToolStripItem toolStripItem = (ToolStripItem)sender;
+            if (toolStripItem == null)
                 return;
+
+            IFilter filter = toolStripItem.Tag as IFilter;
+            if (filter == null)
+                return;
+
+            filter.ShowSettings(this);
         }
 
         private void FilterMenuItem_Clicked(object sender, EventArgs e)
@@ -551,19 +625,24 @@ namespace CopyFilesToFolders
                 bgwAddFiles.RunWorkerAsync(this.RecentFiles.ToArray());
             }
 
-            foreach(IFilter filter in this.FileFilters)
-            {
-                ToolStripMenuItem menuItem = (ToolStripMenuItem)optionsToolStripMenuItem.DropDownItems.Add(filter.Description);
-                menuItem.Tag = filter;
-                menuItem.Checked = filter.Enabled;
-                menuItem.Click += new EventHandler(FilterMenuItem_Clicked);
-            }
             if (this.FileFilters.Count > 0)
             {
                 optionsToolStripMenuItem.DropDownItems.Add("-");
-                ToolStripItem filterSettingsItem = optionsToolStripMenuItem.DropDownItems.Add("Filters settings");
+                ToolStripMenuItem filterSettingsItem = (ToolStripMenuItem)optionsToolStripMenuItem.DropDownItems.Add("Filters settings");
                 filterSettingsItem.Image = Properties.Resources.Settings.ToBitmap();
-                filterSettingsItem.Click += new EventHandler(FiltersSettingsMenu_Clicked);
+
+                foreach (IFilter filter in this.FileFilters)
+                {
+                    ToolStripMenuItem menuItem = new ToolStripMenuItem(filter.Description);
+                    menuItem.Tag = filter;
+                    menuItem.Checked = filter.Enabled;
+                    menuItem.Click += new EventHandler(FilterMenuItem_Clicked);
+                    optionsToolStripMenuItem.DropDownItems.Insert(1, menuItem);
+
+                    ToolStripItem filterSettingsSubMenuItem = filterSettingsItem.DropDownItems.Add(filter.Title);
+                    filterSettingsSubMenuItem.Tag = filter;
+                    filterSettingsSubMenuItem.Click += new EventHandler(FiltersSettingsMenu_Clicked);
+                }
             }
 
             this.RecentFiles.Clear();
@@ -666,14 +745,36 @@ namespace CopyFilesToFolders
                 return;
             int count = MainList.Items.Count;
             FileInfo fi = null;
+            bool satisfied = false;
             try
             {
                 foreach (string filePath in Directory.GetFiles(dirName))
                 {
+                    satisfied = true;
                     if (bgwAddFilesInFolder.CancellationPending)
                         break;
 
                     count++;
+                    bgwAddFilesInFolder.ReportProgress(count, filePath);
+
+                    foreach (IFilter filter in this.FileFilters)
+                    {
+                        if (bgwAddFilesInFolder.CancellationPending)
+                            break;
+
+                        if (filter.Enabled)
+                        {
+                            if (!filter.Filter(filePath))
+                            {
+                                satisfied = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!satisfied)
+                        continue;
+
                     try
                     {
                         fi = new FileInfo(filePath);
@@ -687,18 +788,17 @@ namespace CopyFilesToFolders
                     {
                         MainList.Invoke(new MethodInvoker(delegate
                         {
-                            ListViewItem item = MainList.Items.Add(count.ToString());
+                            ListViewItem item = MainList.Items.Add(string.Format("{0}", (MainList.Items.Count + 1).ToString()));
                             item.SubItems.Add(filePath);
                             item.SubItems.Add(string.Empty);//Status
                         }));
                     }
                     else
                     {
-                        ListViewItem item = MainList.Items.Add(count.ToString());
+                        ListViewItem item = MainList.Items.Add(string.Format("{0}", (MainList.Items.Count + 1).ToString()));
                         item.SubItems.Add(filePath);
                         item.SubItems.Add(string.Empty);//Status
                     }
-                    bgwAddFilesInFolder.ReportProgress(count, filePath);
                 }
 
                 foreach (string d in Directory.GetDirectories(dirName))
@@ -1102,6 +1202,8 @@ namespace CopyFilesToFolders
         {
             removeContextMenuItem.Enabled = MainList.SelectedItems.Count > 0;
             removeAllContextMenuItem.Enabled = MainList.Items.Count > 0;
+            copyPathToolStripMenuItem.Enabled = MainList.SelectedItems.Count > 0;
+            showInExplorerToolStripMenuItem.Enabled = MainList.SelectedItems.Count == 1;
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -1131,6 +1233,33 @@ namespace CopyFilesToFolders
             {
                 Debug.Print(ex.Message);
             }
+        }
+
+        private void copyPathToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string text = string.Empty;
+            foreach(ListViewItem selItem in MainList.SelectedItems)
+            {
+                if (text.Length > 0)
+                    text += System.Environment.NewLine;
+                text += selItem.SubItems[1].Text;
+            }
+            if (text.Length > 0)
+            {
+                Clipboard.Clear();
+                Clipboard.SetText(text);
+            }
+        }
+
+        private void showInExplorerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Process proc = new Process();
+            string filePath = MainList.SelectedItems[0].SubItems[1].Text;
+            string argument = string.Format("/select,{0}", filePath);
+            proc.StartInfo = new ProcessStartInfo("explorer.exe");
+            proc.StartInfo.Arguments = argument;
+            proc.StartInfo.UseShellExecute = true;
+            proc.Start();
         }
     }
 }
