@@ -28,392 +28,322 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.label1 = new System.Windows.Forms.Label();
-            this.btnAddFiles = new System.Windows.Forms.Button();
-            this.btnAddFIlesInFolder = new System.Windows.Forms.Button();
-            this.btnRemoveSelectedFiles = new System.Windows.Forms.Button();
-            this.btnRemoveAllFiles = new System.Windows.Forms.Button();
-            this.dlgFolder = new System.Windows.Forms.FolderBrowserDialog();
-            this.dlgFile = new System.Windows.Forms.OpenFileDialog();
-            this.btnAddDestinationItem = new System.Windows.Forms.Button();
-            this.MainPanel = new System.Windows.Forms.Panel();
-            this.chkOverwite = new System.Windows.Forms.CheckBox();
-            this.bgwAddFilesInFolder = new System.ComponentModel.BackgroundWorker();
-            this.MainProgressbar = new System.Windows.Forms.ProgressBar();
-            this.bgwAddFiles = new System.ComponentModel.BackgroundWorker();
             this.MainMenu = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.newProjecttoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openProjecttoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveProjectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveProjectAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.closeProjecttoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
+            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addProfileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addFilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addFilesInFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
-            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.loadRecentFilesAtStartupToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.FileListContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.addFilesContextMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.addFilesInFolderContextMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.removeContextMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.removeAllContextMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
-            this.copyPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.MainImgList = new System.Windows.Forms.ImageList(this.components);
-            this.MainList = new CopyFilesToFolders.ListViewEx();
-            this.colNb = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colPath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.showInExplorerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadRecentProjectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.filterFilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MainTabControl = new System.Windows.Forms.TabControl();
+            this.MainToolbar = new System.Windows.Forms.ToolStrip();
+            this.btnNewProject = new System.Windows.Forms.ToolStripButton();
+            this.btnOpenProject = new System.Windows.Forms.ToolStripButton();
+            this.btnSaveProject = new System.Windows.Forms.ToolStripButton();
+            this.btnSaveProjectAs = new System.Windows.Forms.ToolStripButton();
+            this.btnCloseProject = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.btnAddProfile = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.btnAddFiles = new System.Windows.Forms.ToolStripButton();
+            this.btnAddFilesinFolder = new System.Windows.Forms.ToolStripButton();
             this.MainMenu.SuspendLayout();
-            this.FileListContextMenu.SuspendLayout();
+            this.MainToolbar.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(6, 31);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(37, 13);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "Files:";
-            // 
-            // btnAddFiles
-            // 
-            this.btnAddFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAddFiles.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAddFiles.Location = new System.Drawing.Point(1135, 48);
-            this.btnAddFiles.Name = "btnAddFiles";
-            this.btnAddFiles.Size = new System.Drawing.Size(123, 32);
-            this.btnAddFiles.TabIndex = 2;
-            this.btnAddFiles.Text = "Add Files";
-            this.btnAddFiles.UseVisualStyleBackColor = true;
-            this.btnAddFiles.Click += new System.EventHandler(this.btnAddFiles_Click);
-            // 
-            // btnAddFIlesInFolder
-            // 
-            this.btnAddFIlesInFolder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAddFIlesInFolder.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAddFIlesInFolder.Location = new System.Drawing.Point(1135, 86);
-            this.btnAddFIlesInFolder.Name = "btnAddFIlesInFolder";
-            this.btnAddFIlesInFolder.Size = new System.Drawing.Size(123, 32);
-            this.btnAddFIlesInFolder.TabIndex = 2;
-            this.btnAddFIlesInFolder.Text = "Add Files in Folder";
-            this.btnAddFIlesInFolder.UseVisualStyleBackColor = true;
-            this.btnAddFIlesInFolder.Click += new System.EventHandler(this.btnAddFIlesInFolder_Click);
-            // 
-            // btnRemoveSelectedFiles
-            // 
-            this.btnRemoveSelectedFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRemoveSelectedFiles.Enabled = false;
-            this.btnRemoveSelectedFiles.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRemoveSelectedFiles.Location = new System.Drawing.Point(1135, 124);
-            this.btnRemoveSelectedFiles.Name = "btnRemoveSelectedFiles";
-            this.btnRemoveSelectedFiles.Size = new System.Drawing.Size(123, 32);
-            this.btnRemoveSelectedFiles.TabIndex = 2;
-            this.btnRemoveSelectedFiles.Text = "Remove";
-            this.btnRemoveSelectedFiles.UseVisualStyleBackColor = true;
-            this.btnRemoveSelectedFiles.Click += new System.EventHandler(this.btnRemoveSelectedFiles_Click);
-            // 
-            // btnRemoveAllFiles
-            // 
-            this.btnRemoveAllFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRemoveAllFiles.Enabled = false;
-            this.btnRemoveAllFiles.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRemoveAllFiles.Location = new System.Drawing.Point(1135, 162);
-            this.btnRemoveAllFiles.Name = "btnRemoveAllFiles";
-            this.btnRemoveAllFiles.Size = new System.Drawing.Size(123, 32);
-            this.btnRemoveAllFiles.TabIndex = 2;
-            this.btnRemoveAllFiles.Text = "Remove All";
-            this.btnRemoveAllFiles.UseVisualStyleBackColor = true;
-            this.btnRemoveAllFiles.Click += new System.EventHandler(this.btnRemoveAllFiles_Click);
-            // 
-            // dlgFile
-            // 
-            this.dlgFile.Multiselect = true;
-            // 
-            // btnAddDestinationItem
-            // 
-            this.btnAddDestinationItem.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAddDestinationItem.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAddDestinationItem.Location = new System.Drawing.Point(1135, 486);
-            this.btnAddDestinationItem.Name = "btnAddDestinationItem";
-            this.btnAddDestinationItem.Size = new System.Drawing.Size(123, 70);
-            this.btnAddDestinationItem.TabIndex = 2;
-            this.btnAddDestinationItem.Text = "Add Destination";
-            this.btnAddDestinationItem.UseVisualStyleBackColor = true;
-            this.btnAddDestinationItem.Click += new System.EventHandler(this.btnAddDestinationItem_Click);
-            // 
-            // MainPanel
-            // 
-            this.MainPanel.Location = new System.Drawing.Point(7, 461);
-            this.MainPanel.Name = "MainPanel";
-            this.MainPanel.Size = new System.Drawing.Size(1123, 97);
-            this.MainPanel.TabIndex = 3;
-            // 
-            // chkOverwite
-            // 
-            this.chkOverwite.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.chkOverwite.AutoSize = true;
-            this.chkOverwite.Checked = true;
-            this.chkOverwite.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkOverwite.Location = new System.Drawing.Point(1135, 466);
-            this.chkOverwite.Name = "chkOverwite";
-            this.chkOverwite.Size = new System.Drawing.Size(74, 17);
-            this.chkOverwite.TabIndex = 4;
-            this.chkOverwite.Text = "Overwrite ";
-            this.chkOverwite.UseVisualStyleBackColor = true;
-            // 
-            // bgwAddFilesInFolder
-            // 
-            this.bgwAddFilesInFolder.WorkerReportsProgress = true;
-            this.bgwAddFilesInFolder.WorkerSupportsCancellation = true;
-            this.bgwAddFilesInFolder.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bgwAddFilesInFolder_DoWork);
-            this.bgwAddFilesInFolder.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.bgwAddFilesInFolder_ProgressChanged);
-            this.bgwAddFilesInFolder.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bgwAddFilesInFolder_RunWorkerCompleted);
-            // 
-            // MainProgressbar
-            // 
-            this.MainProgressbar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.MainProgressbar.Location = new System.Drawing.Point(7, 457);
-            this.MainProgressbar.Margin = new System.Windows.Forms.Padding(0);
-            this.MainProgressbar.MarqueeAnimationSpeed = 10;
-            this.MainProgressbar.Name = "MainProgressbar";
-            this.MainProgressbar.Size = new System.Drawing.Size(1122, 4);
-            this.MainProgressbar.Step = 100;
-            this.MainProgressbar.Style = System.Windows.Forms.ProgressBarStyle.Marquee;
-            this.MainProgressbar.TabIndex = 5;
-            this.MainProgressbar.Visible = false;
-            // 
-            // bgwAddFiles
-            // 
-            this.bgwAddFiles.WorkerReportsProgress = true;
-            this.bgwAddFiles.WorkerSupportsCancellation = true;
-            this.bgwAddFiles.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bgwAddFiles_DoWork);
-            this.bgwAddFiles.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.bgwAddFiles_ProgressChanged);
-            this.bgwAddFiles.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bgwAddFiles_RunWorkerCompleted);
             // 
             // MainMenu
             // 
             this.MainMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
-            this.optionsToolStripMenuItem,
-            this.helpToolStripMenuItem});
+            this.editToolStripMenuItem,
+            this.optionsToolStripMenuItem});
             this.MainMenu.Location = new System.Drawing.Point(0, 0);
             this.MainMenu.Name = "MainMenu";
-            this.MainMenu.Size = new System.Drawing.Size(1264, 24);
-            this.MainMenu.TabIndex = 6;
-            this.MainMenu.Text = "menuStrip1";
+            this.MainMenu.Size = new System.Drawing.Size(984, 24);
+            this.MainMenu.TabIndex = 0;
             // 
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.addFilesToolStripMenuItem,
-            this.addFilesInFolderToolStripMenuItem,
-            this.toolStripMenuItem1,
+            this.newProjecttoolStripMenuItem,
+            this.openProjecttoolStripMenuItem,
+            this.saveProjectToolStripMenuItem,
+            this.saveProjectAsToolStripMenuItem,
+            this.closeProjecttoolStripMenuItem,
+            this.toolStripMenuItem2,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "&File";
             // 
+            // newProjecttoolStripMenuItem
+            // 
+            this.newProjecttoolStripMenuItem.Name = "newProjecttoolStripMenuItem";
+            this.newProjecttoolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
+            this.newProjecttoolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.newProjecttoolStripMenuItem.Text = "New Project";
+            this.newProjecttoolStripMenuItem.Click += new System.EventHandler(this.newProjecttoolStripMenuItem_Click);
+            // 
+            // openProjecttoolStripMenuItem
+            // 
+            this.openProjecttoolStripMenuItem.Name = "openProjecttoolStripMenuItem";
+            this.openProjecttoolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
+            this.openProjecttoolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.openProjecttoolStripMenuItem.Text = "Open Project";
+            this.openProjecttoolStripMenuItem.Click += new System.EventHandler(this.openProjectToolStripMenuItem_Click);
+            // 
+            // saveProjectToolStripMenuItem
+            // 
+            this.saveProjectToolStripMenuItem.Enabled = false;
+            this.saveProjectToolStripMenuItem.Name = "saveProjectToolStripMenuItem";
+            this.saveProjectToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
+            this.saveProjectToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.saveProjectToolStripMenuItem.Text = "Save Project";
+            this.saveProjectToolStripMenuItem.Click += new System.EventHandler(this.saveProjectToolStripMenuItem_Click);
+            // 
+            // saveProjectAsToolStripMenuItem
+            // 
+            this.saveProjectAsToolStripMenuItem.Enabled = false;
+            this.saveProjectAsToolStripMenuItem.Name = "saveProjectAsToolStripMenuItem";
+            this.saveProjectAsToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.S)));
+            this.saveProjectAsToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.saveProjectAsToolStripMenuItem.Text = "Save Project As...";
+            this.saveProjectAsToolStripMenuItem.Click += new System.EventHandler(this.saveProjectAsToolStripMenuItem_Click);
+            // 
+            // closeProjecttoolStripMenuItem
+            // 
+            this.closeProjecttoolStripMenuItem.Enabled = false;
+            this.closeProjecttoolStripMenuItem.Name = "closeProjecttoolStripMenuItem";
+            this.closeProjecttoolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.W)));
+            this.closeProjecttoolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.closeProjecttoolStripMenuItem.Text = "Close Project";
+            this.closeProjecttoolStripMenuItem.Click += new System.EventHandler(this.closeProjecttoolStripMenuItem_Click);
+            // 
+            // toolStripMenuItem2
+            // 
+            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(232, 6);
+            // 
+            // exitToolStripMenuItem
+            // 
+            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            this.exitToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.exitToolStripMenuItem.Text = "Exit";
+            // 
+            // editToolStripMenuItem
+            // 
+            this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.addProfileToolStripMenuItem,
+            this.addFilesToolStripMenuItem,
+            this.addFilesInFolderToolStripMenuItem});
+            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
+            this.editToolStripMenuItem.Text = "&Edit";
+            this.editToolStripMenuItem.DropDownOpening += new System.EventHandler(this.editToolStripMenuItem_DropDownOpening);
+            // 
+            // addProfileToolStripMenuItem
+            // 
+            this.addProfileToolStripMenuItem.Name = "addProfileToolStripMenuItem";
+            this.addProfileToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.addProfileToolStripMenuItem.Text = "Add Profile";
+            this.addProfileToolStripMenuItem.Click += new System.EventHandler(this.addProfileToolStripMenuItem_Click);
+            // 
             // addFilesToolStripMenuItem
             // 
             this.addFilesToolStripMenuItem.Name = "addFilesToolStripMenuItem";
-            this.addFilesToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.addFilesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.addFilesToolStripMenuItem.Text = "Add Files";
             this.addFilesToolStripMenuItem.Click += new System.EventHandler(this.addFilesToolStripMenuItem_Click);
             // 
             // addFilesInFolderToolStripMenuItem
             // 
             this.addFilesInFolderToolStripMenuItem.Name = "addFilesInFolderToolStripMenuItem";
-            this.addFilesInFolderToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.addFilesInFolderToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.addFilesInFolderToolStripMenuItem.Text = "Add Files in Folder";
             this.addFilesInFolderToolStripMenuItem.Click += new System.EventHandler(this.addFilesInFolderToolStripMenuItem_Click);
-            // 
-            // toolStripMenuItem1
-            // 
-            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(168, 6);
-            // 
-            // exitToolStripMenuItem
-            // 
-            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
-            this.exitToolStripMenuItem.Text = "Exit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // optionsToolStripMenuItem
             // 
             this.optionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.loadRecentFilesAtStartupToolStripMenuItem});
+            this.loadRecentProjectToolStripMenuItem,
+            this.filterFilesToolStripMenuItem});
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
             this.optionsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
             this.optionsToolStripMenuItem.Text = "&Options";
             // 
-            // loadRecentFilesAtStartupToolStripMenuItem
+            // loadRecentProjectToolStripMenuItem
             // 
-            this.loadRecentFilesAtStartupToolStripMenuItem.Name = "loadRecentFilesAtStartupToolStripMenuItem";
-            this.loadRecentFilesAtStartupToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
-            this.loadRecentFilesAtStartupToolStripMenuItem.Text = "Load recent files at startup";
-            this.loadRecentFilesAtStartupToolStripMenuItem.Click += new System.EventHandler(this.loadRecentFilesAtStartupToolStripMenuItem_Click);
+            this.loadRecentProjectToolStripMenuItem.Name = "loadRecentProjectToolStripMenuItem";
+            this.loadRecentProjectToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.loadRecentProjectToolStripMenuItem.Text = "Load Recent Project";
+            this.loadRecentProjectToolStripMenuItem.Click += new System.EventHandler(this.loadRecentProjectToolStripMenuItem_Click);
             // 
-            // helpToolStripMenuItem
+            // filterFilesToolStripMenuItem
             // 
-            this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.aboutToolStripMenuItem});
-            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
-            this.helpToolStripMenuItem.Text = "&Help";
+            this.filterFilesToolStripMenuItem.Name = "filterFilesToolStripMenuItem";
+            this.filterFilesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.filterFilesToolStripMenuItem.Text = "File Filter";
             // 
-            // aboutToolStripMenuItem
+            // MainTabControl
             // 
-            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
-            this.aboutToolStripMenuItem.Text = "&About";
-            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
-            // 
-            // FileListContextMenu
-            // 
-            this.FileListContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.addFilesContextMenuItem,
-            this.addFilesInFolderContextMenuItem,
-            this.removeContextMenuItem,
-            this.removeAllContextMenuItem,
-            this.toolStripMenuItem2,
-            this.copyPathToolStripMenuItem,
-            this.showInExplorerToolStripMenuItem});
-            this.FileListContextMenu.Name = "FileListContextMenu";
-            this.FileListContextMenu.Size = new System.Drawing.Size(181, 164);
-            this.FileListContextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.FileListContextMenu_Opening);
-            // 
-            // addFilesContextMenuItem
-            // 
-            this.addFilesContextMenuItem.Name = "addFilesContextMenuItem";
-            this.addFilesContextMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.addFilesContextMenuItem.Text = "Add Files";
-            this.addFilesContextMenuItem.Click += new System.EventHandler(this.addFilesContextMenuItem_Click);
-            // 
-            // addFilesInFolderContextMenuItem
-            // 
-            this.addFilesInFolderContextMenuItem.Name = "addFilesInFolderContextMenuItem";
-            this.addFilesInFolderContextMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.addFilesInFolderContextMenuItem.Text = "Add Files in Folder";
-            this.addFilesInFolderContextMenuItem.Click += new System.EventHandler(this.addFilesInFolderContextMenuItem_Click);
-            // 
-            // removeContextMenuItem
-            // 
-            this.removeContextMenuItem.Name = "removeContextMenuItem";
-            this.removeContextMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.removeContextMenuItem.Text = "Remove";
-            this.removeContextMenuItem.Click += new System.EventHandler(this.removeContextMenuItem_Click);
-            // 
-            // removeAllContextMenuItem
-            // 
-            this.removeAllContextMenuItem.Name = "removeAllContextMenuItem";
-            this.removeAllContextMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.removeAllContextMenuItem.Text = "Remove All";
-            this.removeAllContextMenuItem.Click += new System.EventHandler(this.removeAllContextMenuItem_Click);
-            // 
-            // toolStripMenuItem2
-            // 
-            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(177, 6);
-            // 
-            // copyPathToolStripMenuItem
-            // 
-            this.copyPathToolStripMenuItem.Name = "copyPathToolStripMenuItem";
-            this.copyPathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.copyPathToolStripMenuItem.Text = "Copy Path";
-            this.copyPathToolStripMenuItem.Click += new System.EventHandler(this.copyPathToolStripMenuItem_Click);
-            // 
-            // MainImgList
-            // 
-            this.MainImgList.ColorDepth = System.Windows.Forms.ColorDepth.Depth8Bit;
-            this.MainImgList.ImageSize = new System.Drawing.Size(16, 16);
-            this.MainImgList.TransparentColor = System.Drawing.Color.Transparent;
-            // 
-            // MainList
-            // 
-            this.MainList.AllowDrop = true;
-            this.MainList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.MainTabControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.MainList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.colNb,
-            this.colPath,
-            this.colStatus});
-            this.MainList.ContextMenuStrip = this.FileListContextMenu;
-            this.MainList.FullRowSelect = true;
-            this.MainList.GridLines = true;
-            this.MainList.HideSelection = false;
-            this.MainList.Location = new System.Drawing.Point(7, 49);
-            this.MainList.Name = "MainList";
-            this.MainList.ShowItemToolTips = true;
-            this.MainList.Size = new System.Drawing.Size(1122, 407);
-            this.MainList.TabIndex = 0;
-            this.MainList.UseCompatibleStateImageBehavior = false;
-            this.MainList.View = System.Windows.Forms.View.Details;
-            this.MainList.ItemActivate += new System.EventHandler(this.MainList_ItemActivate);
-            this.MainList.SelectedIndexChanged += new System.EventHandler(this.MainList_SelectedIndexChanged);
-            this.MainList.DragDrop += new System.Windows.Forms.DragEventHandler(this.MainList_DragDrop);
-            this.MainList.DragEnter += new System.Windows.Forms.DragEventHandler(this.MainList_DragEnter);
-            this.MainList.KeyUp += new System.Windows.Forms.KeyEventHandler(this.MainList_KeyUp);
+            this.MainTabControl.Location = new System.Drawing.Point(1, 52);
+            this.MainTabControl.Name = "MainTabControl";
+            this.MainTabControl.SelectedIndex = 0;
+            this.MainTabControl.Size = new System.Drawing.Size(985, 510);
+            this.MainTabControl.TabIndex = 1;
+            this.MainTabControl.Visible = false;
+            this.MainTabControl.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.MainTabControl_MouseDoubleClick);
             // 
-            // colNb
+            // MainToolbar
             // 
-            this.colNb.Text = "#";
-            this.colNb.Width = 40;
+            this.MainToolbar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.btnNewProject,
+            this.btnOpenProject,
+            this.btnSaveProject,
+            this.btnSaveProjectAs,
+            this.btnCloseProject,
+            this.toolStripSeparator1,
+            this.btnAddProfile,
+            this.toolStripSeparator2,
+            this.btnAddFiles,
+            this.btnAddFilesinFolder});
+            this.MainToolbar.Location = new System.Drawing.Point(0, 24);
+            this.MainToolbar.Name = "MainToolbar";
+            this.MainToolbar.Size = new System.Drawing.Size(984, 25);
+            this.MainToolbar.TabIndex = 2;
+            this.MainToolbar.Text = "toolStrip1";
             // 
-            // colPath
+            // btnNewProject
             // 
-            this.colPath.Text = "Path";
-            this.colPath.Width = 960;
+            this.btnNewProject.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnNewProject.Image = global::CopyFilesToFolders.Properties.Resources.FileNew;
+            this.btnNewProject.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnNewProject.Name = "btnNewProject";
+            this.btnNewProject.Size = new System.Drawing.Size(23, 22);
+            this.btnNewProject.ToolTipText = "New Project";
+            this.btnNewProject.Click += new System.EventHandler(this.btnNewProject_Click);
             // 
-            // colStatus
+            // btnOpenProject
             // 
-            this.colStatus.Text = "Status";
-            this.colStatus.Width = 100;
+            this.btnOpenProject.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnOpenProject.Image = global::CopyFilesToFolders.Properties.Resources.FileOpen;
+            this.btnOpenProject.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnOpenProject.Name = "btnOpenProject";
+            this.btnOpenProject.Size = new System.Drawing.Size(23, 22);
+            this.btnOpenProject.ToolTipText = "Open Project";
+            this.btnOpenProject.Click += new System.EventHandler(this.btnOpenProject_Click);
             // 
-            // showInExplorerToolStripMenuItem
+            // btnSaveProject
             // 
-            this.showInExplorerToolStripMenuItem.Name = "showInExplorerToolStripMenuItem";
-            this.showInExplorerToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.showInExplorerToolStripMenuItem.Text = "Show in Explorer";
-            this.showInExplorerToolStripMenuItem.Click += new System.EventHandler(this.showInExplorerToolStripMenuItem_Click);
+            this.btnSaveProject.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnSaveProject.Enabled = false;
+            this.btnSaveProject.Image = global::CopyFilesToFolders.Properties.Resources.Save;
+            this.btnSaveProject.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnSaveProject.Name = "btnSaveProject";
+            this.btnSaveProject.Size = new System.Drawing.Size(23, 22);
+            this.btnSaveProject.ToolTipText = "Save Project";
+            this.btnSaveProject.Click += new System.EventHandler(this.btnSaveProject_Click);
+            // 
+            // btnSaveProjectAs
+            // 
+            this.btnSaveProjectAs.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnSaveProjectAs.Enabled = false;
+            this.btnSaveProjectAs.Image = global::CopyFilesToFolders.Properties.Resources.SaveAs;
+            this.btnSaveProjectAs.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnSaveProjectAs.Name = "btnSaveProjectAs";
+            this.btnSaveProjectAs.Size = new System.Drawing.Size(23, 22);
+            this.btnSaveProjectAs.ToolTipText = "Save Project As...";
+            this.btnSaveProjectAs.Click += new System.EventHandler(this.btnSaveProjectAs_Click);
+            // 
+            // btnCloseProject
+            // 
+            this.btnCloseProject.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnCloseProject.Enabled = false;
+            this.btnCloseProject.Image = global::CopyFilesToFolders.Properties.Resources.FileClose;
+            this.btnCloseProject.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnCloseProject.Name = "btnCloseProject";
+            this.btnCloseProject.Size = new System.Drawing.Size(23, 22);
+            this.btnCloseProject.ToolTipText = "Close Project";
+            this.btnCloseProject.Click += new System.EventHandler(this.btnCloseProject_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
+            // 
+            // btnAddProfile
+            // 
+            this.btnAddProfile.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnAddProfile.Enabled = false;
+            this.btnAddProfile.Image = global::CopyFilesToFolders.Properties.Resources.AddProfile;
+            this.btnAddProfile.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnAddProfile.Name = "btnAddProfile";
+            this.btnAddProfile.Size = new System.Drawing.Size(23, 22);
+            this.btnAddProfile.ToolTipText = "Add Profile";
+            this.btnAddProfile.Click += new System.EventHandler(this.btnAddProfile_Click);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
+            // 
+            // btnAddFiles
+            // 
+            this.btnAddFiles.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnAddFiles.Enabled = false;
+            this.btnAddFiles.Image = global::CopyFilesToFolders.Properties.Resources.AddFiles;
+            this.btnAddFiles.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnAddFiles.Name = "btnAddFiles";
+            this.btnAddFiles.Size = new System.Drawing.Size(23, 22);
+            this.btnAddFiles.ToolTipText = "Add FIles";
+            this.btnAddFiles.Click += new System.EventHandler(this.btnAddFiles_Click);
+            // 
+            // btnAddFilesinFolder
+            // 
+            this.btnAddFilesinFolder.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnAddFilesinFolder.Enabled = false;
+            this.btnAddFilesinFolder.Image = global::CopyFilesToFolders.Properties.Resources.AddFilesInFolder;
+            this.btnAddFilesinFolder.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnAddFilesinFolder.Name = "btnAddFilesinFolder";
+            this.btnAddFilesinFolder.Size = new System.Drawing.Size(23, 22);
+            this.btnAddFilesinFolder.ToolTipText = "Add Files in Folder";
+            this.btnAddFilesinFolder.Click += new System.EventHandler(this.btnAddFilesinFolder_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1264, 561);
-            this.Controls.Add(this.chkOverwite);
-            this.Controls.Add(this.MainPanel);
-            this.Controls.Add(this.btnAddDestinationItem);
-            this.Controls.Add(this.btnRemoveAllFiles);
-            this.Controls.Add(this.btnRemoveSelectedFiles);
-            this.Controls.Add(this.btnAddFIlesInFolder);
-            this.Controls.Add(this.btnAddFiles);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.MainList);
+            this.ClientSize = new System.Drawing.Size(984, 561);
+            this.Controls.Add(this.MainToolbar);
+            this.Controls.Add(this.MainTabControl);
             this.Controls.Add(this.MainMenu);
-            this.Controls.Add(this.MainProgressbar);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.KeyPreview = true;
             this.MainMenuStrip = this.MainMenu;
-            this.MinimumSize = new System.Drawing.Size(1280, 600);
+            this.MinimumSize = new System.Drawing.Size(1000, 600);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Copy Files to Folders";
+            this.Text = "CopyFilesToFolders";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.MainForm_Load);
-            this.SizeChanged += new System.EventHandler(this.MainForm_SizeChanged);
-            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyUp);
             this.MainMenu.ResumeLayout(false);
             this.MainMenu.PerformLayout();
-            this.FileListContextMenu.ResumeLayout(false);
+            this.MainToolbar.ResumeLayout(false);
+            this.MainToolbar.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -421,42 +351,33 @@
 
         #endregion
 
-        private ListViewEx MainList;
-        private System.Windows.Forms.ColumnHeader colNb;
-        private System.Windows.Forms.ColumnHeader colPath;
-        private System.Windows.Forms.ColumnHeader colStatus;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Button btnAddFiles;
-        private System.Windows.Forms.Button btnAddFIlesInFolder;
-        private System.Windows.Forms.Button btnRemoveSelectedFiles;
-        private System.Windows.Forms.Button btnRemoveAllFiles;
-        private System.Windows.Forms.FolderBrowserDialog dlgFolder;
-        private System.Windows.Forms.OpenFileDialog dlgFile;
-        private System.Windows.Forms.Button btnAddDestinationItem;
-        private System.Windows.Forms.Panel MainPanel;
-        private System.Windows.Forms.CheckBox chkOverwite;
-        private System.ComponentModel.BackgroundWorker bgwAddFilesInFolder;
-        private System.Windows.Forms.ProgressBar MainProgressbar;
-        private System.ComponentModel.BackgroundWorker bgwAddFiles;
         private System.Windows.Forms.MenuStrip MainMenu;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
+        private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
+        private System.Windows.Forms.TabControl MainTabControl;
+        private System.Windows.Forms.ToolStrip MainToolbar;
+        private System.Windows.Forms.ToolStripButton btnNewProject;
+        private System.Windows.Forms.ToolStripButton btnOpenProject;
+        private System.Windows.Forms.ToolStripButton btnSaveProject;
+        private System.Windows.Forms.ToolStripButton btnSaveProjectAs;
+        private System.Windows.Forms.ToolStripButton btnCloseProject;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripButton btnAddProfile;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripButton btnAddFiles;
+        private System.Windows.Forms.ToolStripButton btnAddFilesinFolder;
+        private System.Windows.Forms.ToolStripMenuItem closeProjecttoolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem saveProjectToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem saveProjectAsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem newProjecttoolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem openProjecttoolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem addProfileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem addFilesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem addFilesInFolderToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
-        private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem loadRecentFilesAtStartupToolStripMenuItem;
-        private System.Windows.Forms.ContextMenuStrip FileListContextMenu;
-        private System.Windows.Forms.ToolStripMenuItem addFilesContextMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem addFilesInFolderContextMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem removeContextMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem removeAllContextMenuItem;
-        private System.Windows.Forms.ImageList MainImgList;
-        private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
-        private System.Windows.Forms.ToolStripMenuItem copyPathToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem showInExplorerToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem loadRecentProjectToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem filterFilesToolStripMenuItem;
     }
 }
-

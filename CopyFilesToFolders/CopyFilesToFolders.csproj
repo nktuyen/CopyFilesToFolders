@@ -53,6 +53,12 @@
     <Compile Include="DestinationItem.Designer.cs">
       <DependentUpon>DestinationItem.cs</DependentUpon>
     </Compile>
+    <Compile Include="FileListEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="FileListEditor.Designer.cs">
+      <DependentUpon>FileListEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="IFilter.cs" />
     <Compile Include="ListViewEx.cs">
       <SubType>Component</SubType>
@@ -73,10 +79,25 @@
     <Compile Include="NameFilterSettingsForm.Designer.cs">
       <DependentUpon>NameFilterSettingsForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="PageRenameForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PageRenameForm.Designer.cs">
+      <DependentUpon>PageRenameForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ProfileNameForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ProfileNameForm.Designer.cs">
+      <DependentUpon>ProfileNameForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="DestinationItem.resx">
       <DependentUpon>DestinationItem.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FileListEditor.resx">
+      <DependentUpon>FileListEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ListViewEx.resx">
       <DependentUpon>ListViewEx.cs</DependentUpon>
@@ -86,6 +107,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="NameFilterSettingsForm.resx">
       <DependentUpon>NameFilterSettingsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PageRenameForm.resx">
+      <DependentUpon>PageRenameForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ProfileNameForm.resx">
+      <DependentUpon>ProfileNameForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -111,9 +138,19 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="CopyFilesToFolders.ico" />
     <None Include="Properties\Settings.ico" />
     <None Include="Properties\Delete.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="CopyFilesToFolders.ico" />
+    <None Include="Properties\AddFilesInFolder.ico" />
+    <None Include="Properties\AddFiles.ico" />
+    <None Include="Properties\AddProfile.ico" />
+    <None Include="Properties\FileClose.ico" />
+    <None Include="Properties\SaveAs.png" />
+    <None Include="Properties\Save.png" />
+    <None Include="Properties\FileOpen.ico" />
+    <None Include="Properties\FileNew.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

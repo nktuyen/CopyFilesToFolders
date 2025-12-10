@@ -18,13 +18,13 @@ namespace CopyFilesToFolders
         public string Title { get;private set;}
         public string Description { get;private set;}
         public bool Enabled { get; set; }
-        public NameFilter()
+        public NameFilter(bool enabled = false)
         {
             this.Name = "NameFilter";
             this.Title = "Name Filter";
             this.Description = "Filter files by name";
             this.Wildcard = string.Empty;
-            this.Enabled = false;
+            this.Enabled = enabled;
         }
 
         public bool Initialize()

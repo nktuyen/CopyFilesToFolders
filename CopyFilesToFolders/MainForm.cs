@@ -1,1265 +1,822 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.Design.Serialization;
 using System.Data;
-using System.Data.Common;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
+using System.Xml;
+using Microsoft.Win32;
 
 namespace CopyFilesToFolders
 {
     public partial class MainForm : Form
     {
-        private int DestinationTop { get; set; }
-        private int DestinationSpacing { get; set; }
-        private int DestinationHeight { get; set; }
-        private int DestinationRightPadding = 0;
-        private Dictionary<Control, bool> EnabledControls { get; set; }
-        private bool LoadRecentFilesAtStartup { get; set; }
-        private List<string> RecentFiles { get; set; }
-        private List<DestinationItem> DestinationItems { get; set; }
         private List<IFilter> FileFilters { get; set; }
+        private string CurrentProjectName { get; set; }
+        private bool CurrentProjectChanged { get; set; }
+        private bool LoadRecentProject { get; set; }
+        private List<string> RecentFiles { get; set; }
+        private ToolStripMenuItem RecentFilesMenuItem { get; set; }
+
         public MainForm()
         {
             InitializeComponent();
-            DestinationTop = 0;
-            this.DestinationSpacing = 3;
-            this.DestinationHeight = 22;
-            this.EnabledControls = new Dictionary<Control, bool>();
-            this.LoadRecentFilesAtStartup = false;
-            this.RecentFiles = new List<string>();
-            this.DestinationItems = new List<DestinationItem>();
             this.FileFilters = new List<IFilter>();
-            this.FileFilters.Add(new NameFilter());
+            this.FileFilters.Add(new NameFilter(true));
+            this.RecentFiles = new List<string>();
+            this.CurrentProjectName = null;
+            this.CurrentProjectChanged = false;
         }
 
-        private bool LoadSettings()
+        private void FilterMenuItem_Click(object sender, EventArgs e)
         {
-            string settingsKeyName = "Settings";
-            string destinationListKeyName = "DestinationList";
-            string filtersKeyName = "Filters";
-            Assembly asm = Assembly.GetExecutingAssembly();
-            FileVersionInfo fvi= FileVersionInfo.GetVersionInfo(asm.Location);
-            RegistryKey mainKey = null;
-            string mainKeyPath = string.Format("SOFTWARE\\{0}\\{1}\\", fvi.CompanyName, fvi.ProductName);
-
-            try
+            ToolStripMenuItem menuItem = sender as ToolStripMenuItem;
+            if (menuItem != null)
             {
-                mainKey = Registry.CurrentUser.OpenSubKey(mainKeyPath, true);
-            }
-            catch (System.Exception ex)
-            {
-                Debug.Print(ex.Message);
-            }
-
-            if (mainKey == null)
-            {
-                try
+                IFilter filter = menuItem.Tag as IFilter;
+                if (filter != null)
                 {
-                    mainKey = mainKey = Registry.CurrentUser.CreateSubKey(mainKeyPath, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                    return false;
+                    filter.Enabled = !filter.Enabled;
+                    menuItem.Checked = filter.Enabled;
                 }
             }
+        }
 
-            if (mainKey == null)
-                return false;
+        private void LoadRecentFileMenuItem_Click(object sender, EventArgs e)
+        {
+            ToolStripMenuItem menuItem = sender as ToolStripMenuItem;
+            if (menuItem == null)
+                return;
 
-            RegistryKey settingsKey = null;
-            try
+            if (this.CurrentProjectName != null)
             {
-                settingsKey = mainKey.OpenSubKey(settingsKeyName, true);
-            }
-            catch (System.Exception ex)
-            {
-                Debug.Print(ex.Message);
-            }
+                if (this.CurrentProjectChanged)
+                {
+                    DialogResult res = MessageBox.Show("Current project is not saved\nDo you want to save it now?", "New Project", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                    if (res == DialogResult.Cancel)
+                        return;
 
-            if (settingsKey == null)
-            {
-                try
-                {
-                    settingsKey = mainKey.CreateSubKey(settingsKeyName, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                    return false;
-                }
-            }
-
-            if (settingsKey != null)
-            {
-                object objLoadRecentFilesAtStartup = null;
-
-                try
-                {
-                    objLoadRecentFilesAtStartup = settingsKey.GetValue("LoadRecentFilesAtStartup");
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                }
-
-                if (objLoadRecentFilesAtStartup != null)
-                {
-                    this.LoadRecentFilesAtStartup = ((int)objLoadRecentFilesAtStartup != 0);
-                }
-            }
-
-            RegistryKey destListKey = null;
-            try
-            {
-                destListKey = mainKey.OpenSubKey(destinationListKeyName, true);
-            }
-            catch (System.Exception ex)
-            {
-                Debug.Print(ex.Message);
-            }
-
-            if (destListKey == null)
-            {
-                try
-                {
-                    destListKey = mainKey.CreateSubKey(destinationListKeyName, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                }
-            }
-
-            if (destListKey != null)
-            {
-                string objCount = null;
-                int nCount = 0;
-
-                try
-                {
-                    objCount = destListKey.GetValue("") as string;
-                }
-                catch(System.Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                }
-
-                if (objCount != null)
-                {
-                    int.TryParse(objCount, out nCount);
-                }
-
-                object objData = null;
-                for (int j = 0; j < nCount; j++)
-                {
-                    try
+                    if (res == DialogResult.Yes)
                     {
-                        objData = destListKey.GetValue(j.ToString());
-                    }
-                    catch (System.Exception ex) 
-                    {
-                        Debug.Print(ex.Message);
-                        objData = null;
-                    }
-                    if (objData != null)
-                    {
-                        AddDestination(1, null, objData as string);
-                    }
-                }
-
-                foreach(string valueName in destListKey.GetValueNames())
-                {
-                    try
-                    {
-                        destListKey.DeleteValue(valueName);
-                    }
-                    catch (System.Exception ex)
-                    {
-                        Debug.Print(ex.Message);
-                    }
-                }
-
-                try
-                {
-                    destListKey.SetValue("", string.Empty);
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                }
-            }
-
-            RegistryKey filtersKey = null;
-            try
-            {
-                filtersKey = mainKey.OpenSubKey(filtersKeyName, true);
-            }
-            catch (System.Exception ex)
-            {
-                Debug.Print(ex.Message);
-            }
-
-            if (filtersKey == null)
-            {
-                try
-                {
-                    filtersKey = mainKey.CreateSubKey(filtersKeyName, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                }
-            }
-
-            if (filtersKey != null && this.FileFilters.Count>0)
-            {
-                foreach(IFilter filter in this.FileFilters)
-                {
-                    filter.LoadSettings(filtersKey);
-                }
-            }
-
-            if (this.LoadRecentFilesAtStartup)
-            {
-                this.RecentFiles.Clear();
-                System.IO.StreamReader reader = null;
-                System.IO.FileInfo fi = null;
-                string filePath = string.Empty;
-                try
-                {
-                    fi = new System.IO.FileInfo(asm.Location);
-                    reader = new System.IO.StreamReader(System.IO.Path.Combine(fi.DirectoryName, "RecentFiles.txt"), Encoding.UTF8);
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                }
-                if (reader != null)
-                {
-                    filePath = reader.ReadLine();
-                    while (filePath != null)
-                    {
-                        try
+                        if (this.CurrentProjectName == string.Empty)
                         {
-                            fi = new System.IO.FileInfo(filePath);
-                            foreach (IFilter filter in this.FileFilters)
+                            SaveFileDialog dlgSave = new SaveFileDialog();
+                            dlgSave.Title = "Save Project";
+                            dlgSave.OverwritePrompt = true;
+                            dlgSave.Filter = "All Files|*.*|Project Files|*.copierproject";
+                            dlgSave.FilterIndex = 1;
+
+                            if (dlgSave.ShowDialog() == DialogResult.OK)
                             {
-                                if (filter.Filter(fi.FullName))
+                                if (RecentFiles.Contains(dlgSave.FileName))
                                 {
-                                    this.RecentFiles.Add(fi.FullName);
-                                    break;
+                                    RecentFiles.Remove(dlgSave.FileName);
                                 }
+                                RecentFiles.Add(dlgSave.FileName);
+                                PopulateRecentFiles();
+                                SaveCurrentProjectTo(dlgSave.FileName);
                             }
                         }
-                        catch (System.Exception ex)
-                        {
-                            Debug.Print(ex.Message);
-                        }
-                        filePath = reader.ReadLine();
-                    }
-                    reader.Close();
-                }
-            }
-
-            return true;
-        }
-
-        private bool SaveSettings()
-        {
-            string settingsKeyName = "Settings";
-            string destinationListKeyName = "DestinationList";
-            string filterKeyName = "Filters";
-            Assembly asm = Assembly.GetExecutingAssembly();
-            FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(asm.Location);
-            RegistryKey mainKey = null;
-            string mainKeyPath = string.Format("SOFTWARE\\{0}\\{1}\\", fvi.CompanyName, fvi.ProductName);
-
-            if (this.LoadRecentFilesAtStartup)
-            {
-                System.IO.StreamWriter writer = null;
-                System.IO.FileInfo fi = null;
-                try
-                {
-                    fi = new System.IO.FileInfo(asm.Location);
-                    writer = new System.IO.StreamWriter(System.IO.Path.Combine(fi.DirectoryName, "RecentFiles.txt"), false, Encoding.UTF8);
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                }
-
-                if (writer != null)
-                {
-                    string filePath = string.Empty;
-                    foreach (ListViewItem item in MainList.Items)
-                    {
-                        if (item.SubItems.Count > 1)
-                        {
-                            filePath = item.SubItems[1].Text;
-                            writer.WriteLine(filePath);
-                        }
-
-                    }
-
-                    writer.Flush();
-                    writer.Close();
-                }
-            }
-
-            try
-            {
-                mainKey = Registry.CurrentUser.OpenSubKey(mainKeyPath, true);
-            }
-            catch (System.Exception ex)
-            {
-                Debug.Print(ex.Message);
-            }
-
-            if (mainKey == null)
-            {
-                try
-                {
-                    mainKey = mainKey = Registry.CurrentUser.CreateSubKey(mainKeyPath, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                    return false;
-                }
-            }
-
-            if (mainKey == null)
-                return false;
-
-            RegistryKey settingsKey = null;
-            try
-            {
-                settingsKey = mainKey.OpenSubKey(settingsKeyName, true);
-            }
-            catch (System.Exception ex)
-            {
-                Debug.Print(ex.Message);
-            }
-
-            if (settingsKey == null)
-            {
-                try
-                {
-                    settingsKey = mainKey.CreateSubKey(settingsKeyName, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                }
-            }
-
-            if (settingsKey != null)
-            {
-                try
-                {
-                    settingsKey.SetValue("LoadRecentFilesAtStartup", this.LoadRecentFilesAtStartup ? 1 : 0, RegistryValueKind.DWord);
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                }
-            }
-
-            RegistryKey destListKey = null;
-            try
-            {
-                destListKey = mainKey.OpenSubKey(destinationListKeyName, true);
-            }
-            catch (System.Exception ex)
-            {
-                Debug.Print(ex.Message);
-            }
-
-            if (destListKey == null)
-            {
-                try
-                {
-                    destListKey = mainKey.CreateSubKey(destinationListKeyName, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                }
-            }
-
-            if (destListKey != null && this.DestinationItems.Count > 0)
-            {
-                int j = 0;
-                foreach (DestinationItem dest in this.DestinationItems)
-                {
-                    destListKey.SetValue(j.ToString(), dest.Path);
-                    j++;
-                }
-                destListKey.SetValue("", j.ToString());
-            }
-
-            RegistryKey filtersKey = null;
-            try
-            {
-                filtersKey = mainKey.OpenSubKey(filterKeyName, true);
-            }
-            catch (System.Exception ex)
-            {
-                Debug.Print(ex.Message);
-            }
-
-            if (filtersKey == null)
-            {
-                try
-                {
-                    filtersKey = mainKey.CreateSubKey(filterKeyName, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                }
-            }
-
-            if (filtersKey != null && this.FileFilters.Count > 0)
-            {
-                foreach (IFilter filter in this.FileFilters)
-                {
-                    filter.SaveSettings(filtersKey);
-                }
-            }
-
-            return true;
-        }
-
-        private void EnableControl(Control ctrl, bool enabled)
-        {
-            this.EnabledControls[ctrl] = ctrl.Enabled;
-            ctrl.Enabled = enabled;
-        }
-
-        private void RestoreControlEnabled(Control ctrl)
-        {
-            if (this.EnabledControls.ContainsKey(ctrl))
-                ctrl.Enabled = this.EnabledControls[ctrl];
-        }
-
-        private void ArrangeControls()
-        {
-            MainPanel.Controls.Clear();
-            MainPanel.Location = new Point(MainList.Left, MainList.Top + MainList.Height + this.DestinationSpacing);
-            MainPanel.Size = new Size(MainList.Width, MainPanel.Height);
-            if (this.DestinationItems.Count >= 4)
-                this.DestinationRightPadding = 20;
-            else
-                this.DestinationRightPadding = this.DestinationSpacing;
-
-            this.DestinationTop = 0;
-            int count = 1;
-            foreach (DestinationItem ctrl in this.DestinationItems)
-            {
-                ctrl.Parent = MainPanel;
-                MainPanel.Controls.Add(ctrl);
-                ctrl.Size = new System.Drawing.Size(MainPanel.Width - this.DestinationRightPadding, this.DestinationHeight);
-                ctrl.Location = new Point(0, DestinationTop);
-                ctrl.Title = string.Format("Destination {0}", count++);
-                DestinationTop += ctrl.Height;
-                DestinationTop += this.DestinationSpacing;
-            }
-        }
-
-        private void AddDestination(int num, string title = null, string path = null)
-        {
-            for (int i = 0; i < num; i++)
-            {
-                DestinationItem destItem = new DestinationItem();
-                destItem.Visible = true;
-                destItem.Location = new Point(0, DestinationTop);
-                destItem.HasCustomButton = true;
-                destItem.CustomButtonText = "X";
-                destItem.Size = new System.Drawing.Size(MainPanel.Width - this.DestinationRightPadding, this.DestinationHeight);
-                if (title == null || title == string.Empty)
-                    destItem.Title = string.Format("Destination {0}", MainPanel.Controls.Count);
-                else
-                    destItem.Title = title;
-                if (path != null)
-                    destItem.Path = path;
-
-                destItem.BrowseButtonClicked += new EventHandler(BrowserButton_Click);
-                destItem.CopyButtonClicked += new EventHandler(CopyButton_Click);
-                destItem.CustomButtonClicked += new EventHandler(RemoveDestinationButton_Click);
-                
-                this.DestinationItems.Add(destItem);
-
-                DestinationTop += destItem.Height;
-                DestinationTop += this.DestinationSpacing;
-            }
-        }
-
-        private void RemoveDestinationButton_Click(object sender, EventArgs e)
-        {
-            DestinationItem destItem = (DestinationItem)sender;
-            MainPanel.Controls.Remove(destItem);
-            MainPanel.Invalidate();
-            this.DestinationItems.Remove(destItem);
-            ArrangeControls();
-        }
-
-        private void BrowserButton_Click(object sender, EventArgs e)
-        {
-            DestinationItem item = sender as DestinationItem;
-            if (item == null)
-                return;
-
-            dlgFolder.SelectedPath = item.Path;
-            dlgFolder.ShowNewFolderButton = true;
-            if (dlgFolder.ShowDialog() != DialogResult.OK)
-                return;
-
-            item.Path = dlgFolder.SelectedPath;
-        }
-
-        private void CopyButton_Click(object sender, EventArgs e)
-        {
-            if (MainList.Items.Count <= 0)
-            {
-                MessageBox.Show("There is no file to copy", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            DestinationItem item = sender as DestinationItem;
-            if (!System.IO.Directory.Exists(item.Path))
-            {
-                if(MessageBox.Show(string.Format("Directory \"{0}\" is not exist.\nDo you want to create it?", item.Path), "Error", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
-                {
-                    try
-                    {
-                        System.IO.Directory.CreateDirectory(item.Path);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message, "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
                     }
                 }
-                else
-                {
-                    return;
-                }
             }
 
-            string sourceFilePath = string.Empty;
-            string destFilePath = string.Empty;
-            System.IO.FileInfo sourceFileInfo = null;
-            foreach (ListViewItem listItem in MainList.Items)
+            MainTabControl.TabPages.Clear();
+            MainTabControl.Visible = false;
+            this.CurrentProjectName = string.Empty;
+            this.CurrentProjectChanged = true;
+
+
+            string filePath = menuItem.Text;
+            if(LoadProjectFrom(filePath))
             {
-                MainList.EnsureVisible(listItem.Index);
-                sourceFilePath = listItem.SubItems[1].Text;
-                try
-                {
-                    sourceFileInfo = new System.IO.FileInfo(sourceFilePath);
-                    destFilePath = System.IO.Path.Combine(item.Path, sourceFileInfo.Name);
-                    System.IO.File.Copy(sourceFilePath, destFilePath, chkOverwite.Checked);
-                    listItem.SubItems[2].Text = "OK";
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                    listItem.SubItems[2].Text = "NG";
-                }
+                this.CurrentProjectName = filePath;
+                this.CurrentProjectChanged = false;
+                CurrentProject_Changed(this, new EventArgs());
             }
         }
 
-        private void btnAddDestinationItem_Click(object sender, EventArgs e)
+        private void PopulateRecentFiles()
         {
-            AddDestination(1);
-            ArrangeControls();
-        }
-
-        private void FiltersSettingsMenu_Clicked(object sender, EventArgs e)
-        {
-            ToolStripItem toolStripItem = (ToolStripItem)sender;
-            if (toolStripItem == null)
+            if (RecentFiles.Count <= 0)
                 return;
 
-            IFilter filter = toolStripItem.Tag as IFilter;
-            if (filter == null)
-                return;
-
-            filter.ShowSettings(this);
-        }
-
-        private void FilterMenuItem_Clicked(object sender, EventArgs e)
-        {
-            ToolStripMenuItem menuItem = (ToolStripMenuItem)sender;
-            IFilter filter = (IFilter)menuItem.Tag;
-            if (filter != null)
+            if (RecentFilesMenuItem == null)
             {
-                filter.Enabled = !filter.Enabled;
-                menuItem.Checked = filter.Enabled;
+                RecentFilesMenuItem = new ToolStripMenuItem("Open Recent Project");
+                fileToolStripMenuItem.DropDownItems.Insert(3, RecentFilesMenuItem);
+            }
+
+            if (RecentFilesMenuItem != null)
+            {
+                RecentFilesMenuItem.DropDownItems.Clear();
+                foreach (string file in RecentFiles)
+                {
+                    ToolStripItem menuItem = RecentFilesMenuItem.DropDownItems.Add(file);
+                    menuItem.Click += new EventHandler(LoadRecentFileMenuItem_Click);
+                }
+            }
+        }
+
+        private void FileFilterSettingsMenuItem_Click(object sender, EventArgs e)
+        {
+            ToolStripMenuItem menuItem = sender as ToolStripMenuItem;
+            if (menuItem == null)
+                return;
+
+            NameFilter nameFilter = this.FileFilters[0] as NameFilter;
+            if (nameFilter != null)
+            {
+                NameFilterSettingsForm frm = new NameFilterSettingsForm();
+                frm.Wildcard=nameFilter.Wildcard;
+                if (frm.ShowDialog() == DialogResult.OK)
+                {
+                    nameFilter.Wildcard = frm.Wildcard;
+                }
             }
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
             LoadSettings();
-            if (this.DestinationItems.Count <= 0)
-                AddDestination(4);
+            PopulateRecentFiles();
+            loadRecentProjectToolStripMenuItem.Checked = this.LoadRecentProject;
 
-            MainPanel.AutoScroll = true;
-            loadRecentFilesAtStartupToolStripMenuItem.Checked = this.LoadRecentFilesAtStartup;
-
-            ArrangeControls();
-
-            if (this.LoadRecentFilesAtStartup && this.RecentFiles.Count > 0)
+            int count = 0;
+            foreach (IFilter filter in this.FileFilters)
             {
-                bgwAddFiles.RunWorkerAsync(this.RecentFiles.ToArray());
-            }
-
-            if (this.FileFilters.Count > 0)
-            {
-                optionsToolStripMenuItem.DropDownItems.Add("-");
-                ToolStripMenuItem filterSettingsItem = (ToolStripMenuItem)optionsToolStripMenuItem.DropDownItems.Add("Filters settings");
-                filterSettingsItem.Image = Properties.Resources.Settings.ToBitmap();
-
-                foreach (IFilter filter in this.FileFilters)
+                if(filter.Enabled)
                 {
-                    ToolStripMenuItem menuItem = new ToolStripMenuItem(filter.Description);
+                    ToolStripMenuItem menuItem = filterFilesToolStripMenuItem.DropDownItems.Add(filter.Title) as ToolStripMenuItem;
                     menuItem.Tag = filter;
                     menuItem.Checked = filter.Enabled;
-                    menuItem.Click += new EventHandler(FilterMenuItem_Clicked);
-                    optionsToolStripMenuItem.DropDownItems.Insert(1, menuItem);
-
-                    ToolStripItem filterSettingsSubMenuItem = filterSettingsItem.DropDownItems.Add(filter.Title);
-                    filterSettingsSubMenuItem.Tag = filter;
-                    filterSettingsSubMenuItem.Click += new EventHandler(FiltersSettingsMenu_Clicked);
-                }
-            }
-
-            this.RecentFiles.Clear();
-        }
-
-        private void MainForm_SizeChanged(object sender, EventArgs e)
-        {
-            ArrangeControls();
-        }
-
-        private void MainList_DragEnter(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                e.Effect = DragDropEffects.Copy; // Or DragDropEffects.Move
-            }
-            else
-            {
-                e.Effect = DragDropEffects.None;
-            }
-        }
-
-        private void MainList_DragDrop(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                if (files.Length <= 0)
-                    return;
-
-                if (bgwAddFilesInFolder.IsBusy)
-                    bgwAddFilesInFolder.CancelAsync();
-                bgwAddFilesInFolder.RunWorkerAsync(files);
-            }
-        }
-
-        private void btnAddFiles_Click(object sender, EventArgs e)
-        {
-            dlgFile.Title = "Choose files";
-            dlgFile.CheckPathExists = true;
-            dlgFile.CheckFileExists = true;
-            dlgFile.ShowReadOnly = true;
-            dlgFile.Multiselect = true;
-            dlgFile.Filter = "All Files(*.*)|*.*";
-            if (dlgFile.ShowDialog() != DialogResult.OK)
-                return;
-
-            if (bgwAddFiles.IsBusy)
-                bgwAddFiles.CancelAsync();
-            bgwAddFiles.RunWorkerAsync(dlgFile.FileNames);
-        }
-
-        private void btnRemoveSelectedFiles_Click(object sender, EventArgs e)
-        {
-            if (MessageBox.Show("Are you sure to remove selected files from list?", "Remove Selected Files", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != System.Windows.Forms.DialogResult.Yes)
-                return;
-
-            foreach (ListViewItem item in MainList.SelectedItems)
-                MainList.Items.Remove(item);
-
-            btnRemoveSelectedFiles.Enabled = MainList.SelectedIndices.Count > 0;
-            btnRemoveAllFiles.Enabled = MainList.Items.Count > 0;
-        }
-
-        private void MainList_ItemActivate(object sender, EventArgs e)
-        {
-            btnRemoveSelectedFiles.Enabled = MainList.SelectedIndices.Count > 0;
-        }
-
-        private void MainList_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            btnRemoveSelectedFiles.Enabled = MainList.SelectedIndices.Count > 0;
-        }
-
-        private void btnRemoveAllFiles_Click(object sender, EventArgs e)
-        {
-            if (MessageBox.Show("Are you sure to remove all files in the list?", "Remove All Files", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != System.Windows.Forms.DialogResult.Yes)
-                return;
-
-            MainList.Items.Clear();
-            MainImgList.Images.Clear();
-            btnRemoveSelectedFiles.Enabled = MainList.SelectedIndices.Count > 0;
-            btnRemoveAllFiles.Enabled = MainList.Items.Count > 0;
-        }
-
-        private void btnAddFIlesInFolder_Click(object sender, EventArgs e)
-        {
-            dlgFolder.ShowNewFolderButton = false;
-            if (dlgFolder.ShowDialog() != DialogResult.OK)
-                return;
-
-            if (bgwAddFilesInFolder.IsBusy)
-                bgwAddFilesInFolder.CancelAsync();
-            bgwAddFilesInFolder.RunWorkerAsync(new string[] { dlgFolder.SelectedPath });
-        }
-
-        private void WalkDir(string dirName, int currentDepth, int maxDepth = -1)
-        {
-            if (maxDepth != -1 && currentDepth >= maxDepth)
-                return;
-            int count = MainList.Items.Count;
-            FileInfo fi = null;
-            bool satisfied = false;
-            try
-            {
-                foreach (string filePath in Directory.GetFiles(dirName))
-                {
-                    satisfied = true;
-                    if (bgwAddFilesInFolder.CancellationPending)
-                        break;
-
+                    menuItem.Click += new EventHandler(FilterMenuItem_Click);
                     count++;
-                    bgwAddFilesInFolder.ReportProgress(count, filePath);
-
-                    foreach (IFilter filter in this.FileFilters)
-                    {
-                        if (bgwAddFilesInFolder.CancellationPending)
-                            break;
-
-                        if (filter.Enabled)
-                        {
-                            if (!filter.Filter(filePath))
-                            {
-                                satisfied = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!satisfied)
-                        continue;
-
-                    try
-                    {
-                        fi = new FileInfo(filePath);
-                    }
-                    catch (System.Exception ex)
-                    {
-                        Debug.Print(ex.Message);
-                        fi = null;
-                    }
-                    if (MainList.InvokeRequired)
-                    {
-                        MainList.Invoke(new MethodInvoker(delegate
-                        {
-                            ListViewItem item = MainList.Items.Add(string.Format("{0}", (MainList.Items.Count + 1).ToString()));
-                            item.SubItems.Add(filePath);
-                            item.SubItems.Add(string.Empty);//Status
-                        }));
-                    }
-                    else
-                    {
-                        ListViewItem item = MainList.Items.Add(string.Format("{0}", (MainList.Items.Count + 1).ToString()));
-                        item.SubItems.Add(filePath);
-                        item.SubItems.Add(string.Empty);//Status
-                    }
-                }
-
-                foreach (string d in Directory.GetDirectories(dirName))
-                {
-                    if (bgwAddFilesInFolder.CancellationPending)
-                        break;
-                    this.WalkDir(d, currentDepth, maxDepth);
                 }
             }
-            catch (System.Exception ex)
+            if(count > 0)
             {
-                Debug.Print(ex.Message);
+                filterFilesToolStripMenuItem.DropDownItems.Add("-");
+                ToolStripItem settingsItem = filterFilesToolStripMenuItem.DropDownItems.Add("Settings");
+                settingsItem.Click += new EventHandler(FileFilterSettingsMenuItem_Click);
             }
-        }
 
-        private void bgwAddFilesInFolder_Prepare(object sender, DoWorkEventArgs e)
-        {
-            if (this.InvokeRequired)
+
+            if(this.LoadRecentProject && RecentFiles.Count > 0)
             {
-                this.Invoke(new MethodInvoker(delegate
+                string filePath = RecentFiles[0];
+                if(LoadProjectFrom(filePath))
                 {
-                    
-                    MainProgressbar.Maximum = 100;
-                    MainProgressbar.Minimum = 0;
-                    MainProgressbar.Value = 0;
-                    MainProgressbar.Style = ProgressBarStyle.Marquee;
-                    MainProgressbar.MarqueeAnimationSpeed = 100;
-                    MainProgressbar.Visible = true;
+                    if (MainTabControl.TabCount > 0)
+                        MainTabControl.Visible = true;
 
-                    EnableControl(btnAddFiles, false);
-                    EnableControl(btnAddFIlesInFolder, false);
-                    EnableControl(btnRemoveSelectedFiles, false);
-                    EnableControl(btnRemoveAllFiles, false);
-                    EnableControl(MainPanel, false);
-                    EnableControl(btnAddDestinationItem, false);
-                    EnableControl(MainMenu, false);
-                    EnableControl(FileListContextMenu, false);
-
-                    MainList.AllowDrop = false;
-                }));
-            }
-            else
-            {
-
-                MainProgressbar.Maximum = 100;
-                MainProgressbar.Minimum = 0;
-                MainProgressbar.Value = 0;
-                MainProgressbar.Style = ProgressBarStyle.Marquee;
-                MainProgressbar.MarqueeAnimationSpeed = 100;
-                MainProgressbar.Visible = true;
-
-                EnableControl(btnAddFiles, false);
-                EnableControl(btnAddFIlesInFolder, false);
-                EnableControl(btnRemoveSelectedFiles, false);
-                EnableControl(btnRemoveAllFiles, false);
-                EnableControl(MainPanel, false);
-                EnableControl(btnAddDestinationItem, false);
-                EnableControl(MainMenu, false);
-                EnableControl(FileListContextMenu, false);
-
-                MainList.AllowDrop = false;
-            }
-        }
-
-        private void bgwAddFilesInFolder_DoWork(object sender, DoWorkEventArgs e)
-        {
-            bgwAddFilesInFolder_Prepare(sender, e);
-
-            string[] paths = e.Argument as string[];
-            FileInfo fi = null;
-            ListViewItem item = null;
-            foreach (string filePath in paths)
-            {
-                if (bgwAddFiles.CancellationPending)
-                    break;
-
-                try
-                {
-                    fi = new FileInfo(filePath);
-                }
-                catch (Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                    continue;
-                }
-
-                if ((fi.Attributes & FileAttributes.Directory) == FileAttributes.Directory)
-                {
-                    WalkDir(filePath, 0);
-                }
-                else
-                {
-                    bgwAddFilesInFolder.ReportProgress(100, filePath);
-
-                    if (this.InvokeRequired)
-                    {
-                        this.Invoke(new MethodInvoker(delegate
-                        {
-                            item = MainList.Items.Add(string.Format("{0}", (MainList.Items.Count + 1).ToString()));
-                            item.SubItems.Add(filePath);
-                            item.SubItems.Add(string.Empty);
-                        }));
-                    }
-                    else
-                    {
-                        item = MainList.Items.Add(string.Format("{0}", (MainList.Items.Count + 1).ToString()));
-                        item.SubItems.Add(filePath);
-                        item.SubItems.Add(string.Empty);
-                    }
+                    this.CurrentProjectName = filePath;
+                    this.CurrentProjectChanged = false;
+                    CurrentProject_Changed(this, new EventArgs());
                 }
             }
         }
 
-        private void bgwAddFilesInFolder_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        private void CurrentProject_Changed(object sender, EventArgs e)
         {
-            if (MainProgressbar.InvokeRequired)
-            {
-                MainProgressbar.Invoke(new MethodInvoker(delegate {
-                    if (MainProgressbar.Value >= MainProgressbar.Maximum)
-                        MainProgressbar.Value = MainProgressbar.Minimum;
-                    else
-                        MainProgressbar.Value += MainProgressbar.Step;
-                }));
-            }
-            else
-            {
-                if (MainProgressbar.Value >= MainProgressbar.Maximum)
-                        MainProgressbar.Value = MainProgressbar.Minimum;
-                    else
-                        MainProgressbar.Value += MainProgressbar.Step;
-            }
-        }
+            saveProjectToolStripMenuItem.Enabled = this.CurrentProjectName != null && this.CurrentProjectChanged == true;
+            saveProjectAsToolStripMenuItem.Enabled = this.CurrentProjectName != null;
+            closeProjecttoolStripMenuItem.Enabled = this.CurrentProjectName != null;
 
-        private void bgwAddFilesInFolder_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            if (this.InvokeRequired)
-            {
-                this.Invoke(new MethodInvoker(delegate
-                {
-                    MainProgressbar.Visible = false;
+            btnSaveProject.Enabled = saveProjectToolStripMenuItem.Enabled;
+            btnSaveProjectAs.Enabled = saveProjectAsToolStripMenuItem.Enabled;
+            btnCloseProject.Enabled = closeProjecttoolStripMenuItem.Enabled;
 
-                    RestoreControlEnabled(btnAddFiles);
-                    RestoreControlEnabled(btnAddFIlesInFolder);
-                    RestoreControlEnabled(btnRemoveSelectedFiles);
-                    RestoreControlEnabled(btnRemoveAllFiles);
-                    RestoreControlEnabled(MainPanel);
-                    RestoreControlEnabled(btnAddDestinationItem);
-                    RestoreControlEnabled(MainMenu);
-                    RestoreControlEnabled(FileListContextMenu);
-
-                    btnRemoveSelectedFiles.Enabled = MainList.SelectedIndices.Count > 0;
-                    btnRemoveAllFiles.Enabled = MainList.Items.Count > 0;
-
-                    MainList.AllowDrop = true;
-
-                }));
-            }
-            else
-            {
-                MainProgressbar.Visible = false;
-
-                RestoreControlEnabled(btnAddFiles);
-                RestoreControlEnabled(btnAddFIlesInFolder);
-                RestoreControlEnabled(btnRemoveSelectedFiles);
-                RestoreControlEnabled(btnRemoveAllFiles);
-                RestoreControlEnabled(MainPanel);
-                RestoreControlEnabled(btnAddDestinationItem);
-                RestoreControlEnabled(MainMenu);
-                RestoreControlEnabled(FileListContextMenu);
-
-                btnRemoveSelectedFiles.Enabled = MainList.SelectedIndices.Count > 0;
-                btnRemoveAllFiles.Enabled = MainList.Items.Count > 0;
-
-                MainList.AllowDrop = true;
-            }
-        }
-
-
-        private void bgwAddFiles_Prepare(object sender, DoWorkEventArgs e)
-        {
-            string[] files = e.Argument as string[];
-
-            if (this.InvokeRequired)
-            {
-                this.Invoke(new MethodInvoker(delegate
-                {
-                    MainProgressbar.Style = ProgressBarStyle.Continuous;
-                    MainProgressbar.Maximum = files.Length;
-                    MainProgressbar.Minimum = 0;
-                    MainProgressbar.Value = 0;
-                    MainProgressbar.Visible = true;
-
-                    EnableControl(btnAddFiles, false);
-                    EnableControl(btnAddFIlesInFolder, false);
-                    EnableControl(btnRemoveSelectedFiles, false);
-                    EnableControl(btnRemoveAllFiles, false);
-                    EnableControl(MainPanel, false);
-                    EnableControl(btnAddDestinationItem, false);
-                    EnableControl(MainMenu, false);
-                    EnableControl(FileListContextMenu, false);
-
-                    MainList.AllowDrop = false;
-                }));
-            }
-            else
-            {
-                MainProgressbar.Style = ProgressBarStyle.Continuous;
-                MainProgressbar.Maximum = files.Length;
-                MainProgressbar.Minimum = 0;
-                MainProgressbar.Value = 0;
-                MainProgressbar.Visible = true;
-
-                EnableControl(btnAddFiles, false);
-                EnableControl(btnAddFIlesInFolder, false);
-                EnableControl(btnRemoveSelectedFiles, false);
-                EnableControl(btnRemoveAllFiles, false);
-                EnableControl(MainPanel, false);
-                EnableControl(btnAddDestinationItem, false);
-                EnableControl(MainMenu, false);
-                EnableControl(FileListContextMenu, false);
-
-                MainList.AllowDrop = false;
-            }
-        }
-        private void bgwAddFiles_DoWork(object sender, DoWorkEventArgs e)
-        {
-            bgwAddFiles_Prepare(sender, e);
-
-            string[] files = e.Argument as string[];
-            if (files.Length <= 0)
-                return;
-
-            ListViewItem item = null;
-            int count = 0;
-            System.IO.FileAttributes attrs = System.IO.FileAttributes.Archive;
-
-            foreach (string filePath in files)
-            {
-                if (bgwAddFiles.CancellationPending)
-                    break;
-
-                count++;
-                bgwAddFiles.ReportProgress(count, filePath);
-
-                try
-                {
-                    attrs = System.IO.File.GetAttributes(filePath);
-                    if ((attrs & System.IO.FileAttributes.Directory) == System.IO.FileAttributes.Directory)
-                        continue;
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                    continue;
-                }
-
-                if (this.InvokeRequired)
-                {
-                    this.Invoke(new MethodInvoker(delegate
-                    {
-                        item = MainList.Items.Add(string.Format("{0}", (MainList.Items.Count + 1).ToString()));
-                        item.SubItems.Add(filePath);
-                        item.SubItems.Add(string.Empty);
-                    }));
-                }
-                else
-                {
-                    item = MainList.Items.Add(string.Format("{0}", (MainList.Items.Count + 1).ToString()));
-                    item.SubItems.Add(filePath);
-                    item.SubItems.Add(string.Empty);
-                }
-            }
-        }
-
-        private void bgwAddFiles_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            if (this.InvokeRequired)
-            {
-                this.Invoke(new MethodInvoker(delegate
-                {
-                    MainProgressbar.Value = e.ProgressPercentage;
-                }));
-            }
-            else
-            {
-                MainProgressbar.Value = e.ProgressPercentage;
-            }
-        }
-
-        private void bgwAddFiles_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            if (this.InvokeRequired)
-            {
-                this.Invoke(new MethodInvoker(delegate
-                {
-                    MainProgressbar.Visible = false;
-
-                    RestoreControlEnabled(btnAddFiles);
-                    RestoreControlEnabled(btnAddFIlesInFolder);
-                    RestoreControlEnabled(btnRemoveSelectedFiles);
-                    RestoreControlEnabled(btnRemoveAllFiles);
-                    RestoreControlEnabled(MainPanel);
-                    RestoreControlEnabled(btnAddDestinationItem);
-                    RestoreControlEnabled(MainMenu);
-                    RestoreControlEnabled(FileListContextMenu);
-
-                    btnRemoveSelectedFiles.Enabled = MainList.SelectedIndices.Count > 0;
-                    btnRemoveAllFiles.Enabled = MainList.Items.Count > 0;
-
-                    MainList.AllowDrop = true;
-
-                }));
-            }
-            else
-            {
-                MainProgressbar.Visible = false;
-
-                RestoreControlEnabled(btnAddFiles);
-                RestoreControlEnabled(btnAddFIlesInFolder);
-                RestoreControlEnabled(btnRemoveSelectedFiles);
-                RestoreControlEnabled(btnRemoveAllFiles);
-                RestoreControlEnabled(MainPanel);
-                RestoreControlEnabled(btnAddDestinationItem);
-                RestoreControlEnabled(MainMenu);
-                RestoreControlEnabled(FileListContextMenu);
-
-                btnRemoveSelectedFiles.Enabled = MainList.SelectedIndices.Count > 0;
-                btnRemoveAllFiles.Enabled = MainList.Items.Count > 0;
-
-                MainList.AllowDrop = true;
-            }
-        }
-
-        private void MainForm_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Escape)
-            {
-                if (bgwAddFiles.IsBusy)
-                    bgwAddFiles.CancelAsync();
-                else if (bgwAddFilesInFolder.IsBusy)
-                    bgwAddFilesInFolder.CancelAsync();
-            }
-        }
-
-        private void MainList_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Escape)
-            {
-                if (bgwAddFiles.IsBusy)
-                    bgwAddFiles.CancelAsync();
-                else if (bgwAddFilesInFolder.IsBusy)
-                    bgwAddFilesInFolder.CancelAsync();
-            }
-            else if (e.KeyCode == Keys.A && e.Control)
-            {
-                bool bSelectedAll = MainList.SelectedIndices.Count == MainList.Items.Count;
-                foreach (ListViewItem item in MainList.Items)
-                {
-                    item.Selected = !bSelectedAll;
-                }
-            }
+            btnAddFiles.Enabled = this.CurrentProjectName != null && MainTabControl.Visible;
+            btnAddFilesinFolder.Enabled = this.CurrentProjectName != null && MainTabControl.Visible;
+            btnAddProfile.Enabled = this.CurrentProjectName != null && MainTabControl.Visible;
         }
 
         private void addFilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            btnAddFiles_Click(sender, e);
+            FileListEditor editor = MainTabControl.SelectedTab.Controls[0] as FileListEditor;
+            if (editor == null)
+                return;
+            editor.AddFiles();
         }
 
         private void addFilesInFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            btnAddFIlesInFolder_Click(sender, e);
+            FileListEditor editor = MainTabControl.SelectedTab.Controls[0] as FileListEditor;
+            if (editor == null)
+                return;
+            editor.AddFilesInFolder();
         }
 
-        private void loadRecentFilesAtStartupToolStripMenuItem_Click(object sender, EventArgs e)
+        private void btnAddFiles_Click(object sender, EventArgs e)
         {
-            this.LoadRecentFilesAtStartup = !this.LoadRecentFilesAtStartup;
-            loadRecentFilesAtStartupToolStripMenuItem.Checked = this.LoadRecentFilesAtStartup;
+            addFilesToolStripMenuItem_Click(sender, e);
         }
 
-        private void addFilesContextMenuItem_Click(object sender, EventArgs e)
+        private void btnAddProfile_Click(object sender, EventArgs e)
         {
-            btnAddFiles_Click(sender, e);
+            addProfileToolStripMenuItem_Click(sender, e);
         }
 
-        private void addFilesInFolderContextMenuItem_Click(object sender, EventArgs e)
+        private void btnAddFilesinFolder_Click(object sender, EventArgs e)
         {
-            btnAddFIlesInFolder_Click(sender, e);
+            addFilesInFolderToolStripMenuItem_Click(sender, e);
         }
 
-        private void removeContextMenuItem_Click(object sender, EventArgs e)
+        private void addProfileToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            btnRemoveSelectedFiles_Click(sender, e);
+            ProfileNameForm frm = new ProfileNameForm();
+            frm.ProfileName = "New Profile";
+            if (frm.ShowDialog() != DialogResult.OK)
+                return;
+            foreach (TabPage page in MainTabControl.TabPages)
+            {
+                if (string.Compare(page.Text, frm.ProfileName, StringComparison.OrdinalIgnoreCase) == 0)
+                {
+                    MessageBox.Show(string.Format("Profile with name \"{0}\" is already exist", frm.ProfileName), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+
+            TabPage newPage = new TabPage(frm.ProfileName);
+            FileListEditor filesEditor = new FileListEditor(frm.ProfileName);
+            filesEditor.Parent = newPage;
+            filesEditor.Dock = DockStyle.Fill;
+            filesEditor.FileFilters = this.FileFilters;
+            filesEditor.Changed += new EventHandler(FileListChanged);
+            newPage.Controls.Add(filesEditor);
+            MainTabControl.TabPages.Add(newPage);
+            MainTabControl.Visible = true;
+            MainTabControl.SelectedTab = newPage;
+            this.CurrentProjectChanged = true;
+            CurrentProject_Changed(this, new EventArgs());
         }
 
-        private void removeAllContextMenuItem_Click(object sender, EventArgs e)
+        private void FileListChanged(object sender, EventArgs e)
         {
-            btnRemoveAllFiles_Click(sender, e);
+            this.CurrentProjectChanged = true;
+            CurrentProject_Changed(this, new EventArgs());
         }
 
-        private void FileListContextMenu_Opening(object sender, CancelEventArgs e)
-        {
-            removeContextMenuItem.Enabled = MainList.SelectedItems.Count > 0;
-            removeAllContextMenuItem.Enabled = MainList.Items.Count > 0;
-            copyPathToolStripMenuItem.Enabled = MainList.SelectedItems.Count > 0;
-            showInExplorerToolStripMenuItem.Enabled = MainList.SelectedItems.Count == 1;
-        }
-
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            if (bgwAddFilesInFolder.IsBusy)
-                bgwAddFilesInFolder.CancelAsync();
-            if(bgwAddFiles.IsBusy)
-                bgwAddFiles.CancelAsync();
-
-            SaveSettings();
-        }
-
-        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
-
-        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        private bool LoadProjectFrom(string path)
         {
             try
             {
-                Assembly asm = Assembly.GetExecutingAssembly();
-                FileVersionInfo ver = FileVersionInfo.GetVersionInfo(asm.Location);
-                MessageBox.Show(string.Format("Product:{0}\nVersion:{1}\nCopyright:{2}", ver.ProductName, ver.ProductVersion, ver.LegalCopyright), "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                using (XmlReader reader = XmlReader.Create(path))
+                {
+                    FileListEditor filesEditor = null;
+                    while (reader.Read())
+                    {
+                        if (reader.NodeType == XmlNodeType.Element)
+                        {
+                            if (reader.Name == "Profile")
+                            {
+                                string profileName = reader.GetAttribute("Name");
+                                if(profileName != string.Empty)
+                                {
+                                    filesEditor = new FileListEditor(profileName);
+                                    filesEditor.ReadXML(reader);
+                                    filesEditor.Dock = DockStyle.Fill;
+                                    filesEditor.FileFilters = this.FileFilters;
+                                    filesEditor.Changed += new EventHandler(FileListChanged);
+                                }
+                            }
+                            else if(reader.Name == "Option" || reader.Name == "File" || reader.Name == "Destination")
+                            {
+                                if (filesEditor != null)
+                                    filesEditor.ReadXML(reader);
+                            }
+                        }
+                        else if(reader.NodeType == XmlNodeType.EndElement)
+                        {
+                            if(reader.Name == "Profile")
+                            {
+                                if(filesEditor != null)
+                                {
+                                    TabPage newPage = new TabPage(filesEditor.Title);
+                                    filesEditor.Parent = newPage;
+                                    newPage.Controls.Add(filesEditor);
+                                    MainTabControl.TabPages.Add(newPage);
+                                    MainTabControl.Visible = true;
+                                    MainTabControl.SelectedTab = newPage;
+                                    this.CurrentProjectChanged = true;
+                                    CurrentProject_Changed(this, new EventArgs());
+
+                                    filesEditor = null;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Debug.Print(ex.Message);
+                if (System.IO.File.Exists(path))
+                {
+                    try
+                    {
+                        System.IO.File.Delete(path);
+                    }
+                    catch (System.Exception ex2)
+                    {
+                        Debug.Print(ex2.Message);
+                    }
+                }
+                return false;
+            }
+
+            return true;
+        }
+        private bool SaveCurrentProjectTo(string path)
+        {
+            try
+            {
+                using (FileStream fileStream = new FileStream(path, FileMode.Create))
+                using (StreamWriter sw = new StreamWriter(fileStream))
+                using (XmlTextWriter writer = new XmlTextWriter(sw))
+                {
+                    writer.Formatting = Formatting.Indented;
+                    writer.Indentation = 4;
+                    writer.WriteStartDocument();
+                    writer.WriteStartElement("Project");
+                    writer.WriteStartElement("Profiles");
+                    foreach (TabPage page in MainTabControl.TabPages)
+                    {
+                        FileListEditor editor = page.Controls[0] as FileListEditor;
+                        if (editor != null)
+                        {
+                            editor.WriteXML(writer);
+                        }
+                    }
+                    writer.WriteEndElement();
+                    writer.WriteEndElement();
+                    writer.WriteEndDocument();
+                    writer.Flush();
+                }
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Debug.Print(ex.Message);
+                if (System.IO.File.Exists(path))
+                {
+                    try
+                    {
+                        System.IO.File.Delete(path);
+                    }
+                    catch(System.Exception ex2)
+                    {
+                        Debug.Print(ex2.Message);
+                    }
+                }
+                return false;
+            }
+
+            return true;
+        }
+        private void newProjecttoolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (this.CurrentProjectName != null)
+            {
+                if (this.CurrentProjectChanged)
+                {
+                    DialogResult res = MessageBox.Show("Current project is not saved\nDo you want to save it now?", "New Project", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                    if (res == DialogResult.Cancel)
+                        return;
+
+                    if (res == DialogResult.Yes)
+                    {
+                        if (this.CurrentProjectName == string.Empty)
+                        {
+                            SaveFileDialog dlgSave = new SaveFileDialog();
+                            dlgSave.Title = "Save Project";
+                            dlgSave.OverwritePrompt = true;
+                            dlgSave.Filter = "All Files|*.*|Project Files|*.copierproject";
+                            dlgSave.FilterIndex = 1;
+
+                            if (dlgSave.ShowDialog() == DialogResult.OK)
+                            {
+                                if (RecentFiles.Contains(dlgSave.FileName))
+                                {
+                                    RecentFiles.Remove(dlgSave.FileName);
+                                }
+
+                                RecentFiles.Add(dlgSave.FileName);
+                                PopulateRecentFiles();
+                                SaveCurrentProjectTo(dlgSave.FileName);
+                            }
+                        }
+                    }
+                }
+            }
+
+            MainTabControl.TabPages.Clear();
+            MainTabControl.Visible = false;
+            this.CurrentProjectName = string.Empty;
+            this.CurrentProjectChanged = true;
+            
+            if(MainTabControl.TabCount <= 0)
+            {
+                TabPage newPage = new TabPage("New Profile");
+                FileListEditor editor = new FileListEditor(newPage.Text);
+                editor.Parent = newPage;
+                editor.Dock = DockStyle.Fill;
+                editor.FileFilters = this.FileFilters;
+                editor.Changed += new EventHandler(FileListChanged);
+                newPage.Controls.Add(editor);
+                MainTabControl.TabPages.Add(newPage);
+                MainTabControl.SelectedTab = newPage;
+                MainTabControl.Visible = true;
+            }
+
+            CurrentProject_Changed(this, new EventArgs());
+        }
+
+        private void editToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
+        {
+            addProfileToolStripMenuItem.Enabled = this.CurrentProjectName != null;
+            addFilesToolStripMenuItem.Enabled = this.CurrentProjectName != null;
+            addFilesInFolderToolStripMenuItem.Enabled = this.CurrentProjectName != null;
+        }
+
+        private void MainTabControl_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            TabPage selectedPage = null;
+            for (int i = 0; i < MainTabControl.TabCount; i++)
+            {
+                Rectangle tabRect = MainTabControl.GetTabRect(i);
+                if (tabRect.Contains(e.Location))
+                {
+                    selectedPage = MainTabControl.TabPages[i];
+                    break;
+                }
+            }
+            if (selectedPage != null)
+            {
+                string oldName = selectedPage.Text;
+                PageRenameForm frm = new PageRenameForm(selectedPage.Text);
+                if (frm.ShowDialog() == DialogResult.OK)
+                {
+                    string newName = frm.PageName;
+                    if (newName != oldName)
+                    {
+                        selectedPage.Text = newName;
+                        FileListEditor editor = selectedPage.Controls[0] as FileListEditor;
+                        if (editor != null)
+                        {
+                            editor.Title = newName;
+                        }
+                        this.CurrentProjectChanged = true;
+                        CurrentProject_Changed(this, new EventArgs());
+                    }
+                }
+            }
+        }
+
+        private void closeProjecttoolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (this.CurrentProjectChanged)
+            {
+                DialogResult res = MessageBox.Show("Current project is not saved\nDo you want to save it now?", "New Project", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                if (res == DialogResult.Cancel)
+                    return;
+
+                if (res == DialogResult.Yes)
+                {
+                    if (this.CurrentProjectName == string.Empty)
+                    {
+                        SaveFileDialog dlgSave = new SaveFileDialog();
+                        dlgSave.Title = "Save Project";
+                        dlgSave.OverwritePrompt = true;
+                        dlgSave.Filter = "All Files|*.*|Project Files|*.copierproject";
+                        dlgSave.FilterIndex = 1;
+
+                        if (dlgSave.ShowDialog() == DialogResult.OK)
+                        {
+                            if (RecentFiles.Contains(dlgSave.FileName))
+                            {
+                                RecentFiles.Remove(dlgSave.FileName);
+                            }
+                            RecentFiles.Add(dlgSave.FileName);
+                            PopulateRecentFiles();
+                            SaveCurrentProjectTo(dlgSave.FileName);
+                        }
+                    }
+                }
+            }
+
+            MainTabControl.TabPages.Clear();
+            MainTabControl.Visible = false;
+            this.CurrentProjectName = null;
+            this.CurrentProjectChanged = false;
+            CurrentProject_Changed(this, new EventArgs());
+        }
+
+        private void btnSaveProject_Click(object sender, EventArgs e)
+        {
+            saveProjectToolStripMenuItem_Click(sender, e);
+        }
+
+        private void btnSaveProjectAs_Click(object sender, EventArgs e)
+        {
+            saveProjectAsToolStripMenuItem_Click(sender, e);
+        }
+
+        private void btnCloseProject_Click(object sender, EventArgs e)
+        {
+            closeProjecttoolStripMenuItem_Click(sender, e);
+        }
+
+        private void btnNewProject_Click(object sender, EventArgs e)
+        {
+            newProjecttoolStripMenuItem_Click(sender, e);
+        }
+
+        private void btnOpenProject_Click(object sender, EventArgs e)
+        {
+            openProjectToolStripMenuItem_Click(sender, e);
+        }
+
+        private void openProjectToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog dlgOpen = new OpenFileDialog();
+            dlgOpen.Multiselect = false;
+            dlgOpen.Title = "Open Project";
+            dlgOpen.Filter = "All Files|*.*|Project Files|*.copierproject";
+            dlgOpen.CheckPathExists = true;
+            dlgOpen.CheckFileExists = true;
+            dlgOpen.FilterIndex = 1;
+            if (dlgOpen.ShowDialog() != DialogResult.OK)
+                return;
+
+            if(LoadProjectFrom(dlgOpen.FileName))
+            {
+                if (RecentFiles.Contains(dlgOpen.FileName))
+                {
+                    RecentFiles.Remove(dlgOpen.FileName);
+                }
+
+                RecentFiles.Add(dlgOpen.FileName);
+                PopulateRecentFiles();
+
+                if (MainTabControl.TabCount > 0)
+                    MainTabControl.Visible = true;
+
+                this.CurrentProjectName = dlgOpen.FileName;
+                this.CurrentProjectChanged = false;
+                CurrentProject_Changed(this, new EventArgs());
+            }
+        }
+
+        private void saveProjectToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if(this.CurrentProjectName==null || this.CurrentProjectName.Length==0)
+            {
+                SaveFileDialog dlgSave = new SaveFileDialog();
+                dlgSave.Title = "Save Project";
+                dlgSave.OverwritePrompt = true;
+                dlgSave.CheckPathExists = true;
+                dlgSave.Filter = "All Files|*.*|Project Files|*.copierproject";
+                dlgSave.FilterIndex = 1;
+                if (dlgSave.ShowDialog() != DialogResult.OK)
+                    return;
+
+                if (RecentFiles.Contains(dlgSave.FileName))
+                {
+                    RecentFiles.Remove(dlgSave.FileName);
+                }
+
+                RecentFiles.Add(dlgSave.FileName);
+                PopulateRecentFiles();
+
+                this.CurrentProjectName = dlgSave.FileName;
+            }
+
+            if (SaveCurrentProjectTo(this.CurrentProjectName))
+            {
+                this.CurrentProjectChanged = false;
+                CurrentProject_Changed(this, new EventArgs());
+            }
+        }
+
+        private void saveProjectAsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog dlgSave = new SaveFileDialog();
+            dlgSave.Title = "Save Project";
+            dlgSave.OverwritePrompt = true;
+            dlgSave.CheckPathExists = true;
+            dlgSave.Filter = "All Files|*.*|Project Files|*.copierproject";
+            dlgSave.FilterIndex = 1;
+            if (dlgSave.ShowDialog() != DialogResult.OK)
+                return;
+
+            if (SaveCurrentProjectTo(dlgSave.FileName))
+            {
+                if (RecentFiles.Contains(dlgSave.FileName))
+                {
+                    RecentFiles.Remove(dlgSave.FileName);
+                }
+
+                RecentFiles.Add(dlgSave.FileName);
+                PopulateRecentFiles();
+
+                this.CurrentProjectName = dlgSave.FileName;
+                this.CurrentProjectChanged = false;
+                CurrentProject_Changed(this, new EventArgs());
+            }
+        }
+
+        private void loadRecentProjectToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.LoadRecentProject = !this.LoadRecentProject;
+            loadRecentProjectToolStripMenuItem.Checked = this.LoadRecentProject;
+        }
+
+        private void LoadSettings()
+        {
+            RegistryKey regKey = null;
+            Assembly asm = null;
+            FileVersionInfo fileVer = null;
+            string registryPath = string.Empty;
+            try
+            {
+                asm = Assembly.GetExecutingAssembly();
+                fileVer = FileVersionInfo.GetVersionInfo(asm.Location);
+                registryPath = string.Format("SOFTWARE\\{0}\\{1}", fileVer.CompanyName, fileVer.ProductName);
+                regKey = Registry.CurrentUser.OpenSubKey(registryPath, RegistryKeyPermissionCheck.ReadWriteSubTree);
             }
             catch (System.Exception ex)
             {
                 Debug.Print(ex.Message);
             }
+
+            if (regKey == null)
+            {
+                try
+                {
+                    regKey = Registry.CurrentUser.CreateSubKey(registryPath, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                }
+                catch (System.Exception ex2)
+                {
+                    Debug.Print(ex2.Message);
+                    return;
+                }
+            }
+
+            if (regKey == null)
+                return;
+
+            try
+            {
+                object   objLoadRcentFile = regKey.GetValue("LoadRecentProject", RegistryValueKind.DWord);
+                if (objLoadRcentFile != null)
+                    this.LoadRecentProject = (int)objLoadRcentFile != 0;
+
+                foreach (IFilter filter in this.FileFilters)
+                {
+                    filter.LoadSettings(regKey);
+                }
+
+                if (regKey.GetSubKeyNames().Contains("RecentFiles"))
+                {
+                    RecentFiles.Clear();
+                    RegistryKey recentFilesKey = regKey.CreateSubKey("RecentFiles", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                    if (recentFilesKey != null)
+                    {
+                        object objFileName = null;
+                        string filePath = string.Empty;
+                        foreach (string valueName in recentFilesKey.GetValueNames())
+                        {
+                            objFileName = recentFilesKey.GetValue(valueName);
+                            if (objFileName != null)
+                            {
+                                filePath = objFileName as string;
+                                if (!RecentFiles.Contains(filePath))
+                                    RecentFiles.Add(filePath);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (System.Exception ex3)
+            {
+                Debug.Print(ex3.Message);
+                return;
+            }
         }
 
-        private void copyPathToolStripMenuItem_Click(object sender, EventArgs e)
+        private void SaveSettings()
         {
-            string text = string.Empty;
-            foreach(ListViewItem selItem in MainList.SelectedItems)
+            RegistryKey regKey = null;
+            Assembly asm = null;
+            FileVersionInfo fileVer = null;
+            string registryPath = string.Empty;
+            try
             {
-                if (text.Length > 0)
-                    text += System.Environment.NewLine;
-                text += selItem.SubItems[1].Text;
+                asm = Assembly.GetExecutingAssembly();
+                fileVer = FileVersionInfo.GetVersionInfo(asm.Location);
+                registryPath = string.Format("SOFTWARE\\{0}\\{1}", fileVer.CompanyName, fileVer.ProductName);
+                regKey = Registry.CurrentUser.OpenSubKey(registryPath, RegistryKeyPermissionCheck.ReadWriteSubTree);
             }
-            if (text.Length > 0)
+            catch (System.Exception ex)
             {
-                Clipboard.Clear();
-                Clipboard.SetText(text);
+                Debug.Print(ex.Message);
+            }
+
+            if(regKey == null)
+            {
+                try
+                {
+                    regKey = Registry.CurrentUser.CreateSubKey(registryPath, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                }
+                catch(System.Exception ex2)
+                {
+                    Debug.Print(ex2.Message);
+                    return;
+                }
+            }
+
+            if (regKey == null)
+                return;
+
+            try
+            {
+                regKey.SetValue("LoadRecentProject", this.LoadRecentProject ? 1 : 0, RegistryValueKind.DWord);
+                foreach(IFilter filter in this.FileFilters)
+                {
+                    filter.SaveSettings(regKey);
+                }
+
+                if(regKey.GetSubKeyNames().Contains("RecentFiles"))
+                {
+                    regKey.DeleteSubKeyTree("RecentFiles");
+                }
+
+                RegistryKey recentFilesKey = regKey.CreateSubKey("RecentFiles", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                if (recentFilesKey != null)
+                {
+                    int count = 0;
+                    for (int j = RecentFiles.Count - 1; j >= 0; j--)
+                    {
+                        if (count < 10)
+                        {
+                            recentFilesKey.SetValue(count.ToString(), RecentFiles[j]);
+                            count++;
+                        }
+                        else
+                            break;
+                    }
+                }
+            }
+            catch(System.Exception ex3)
+            {
+                Debug.Print(ex3.Message);
+                return;
             }
         }
 
-        private void showInExplorerToolStripMenuItem_Click(object sender, EventArgs e)
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Process proc = new Process();
-            string filePath = MainList.SelectedItems[0].SubItems[1].Text;
-            string argument = string.Format("/select,{0}", filePath);
-            proc.StartInfo = new ProcessStartInfo("explorer.exe");
-            proc.StartInfo.Arguments = argument;
-            proc.StartInfo.UseShellExecute = true;
-            proc.Start();
+            if (this.CurrentProjectChanged)
+            {
+                DialogResult res = MessageBox.Show("Current project is not saved\nDo you want to save it now?", "New Project", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                if (res == DialogResult.Cancel)
+                {
+                    e.Cancel = true;
+                    return;
+                }
+
+                if (res == DialogResult.Yes)
+                {
+                    if (this.CurrentProjectName == string.Empty)
+                    {
+                        SaveFileDialog dlgSave = new SaveFileDialog();
+                        dlgSave.Title = "Save Project";
+                        dlgSave.OverwritePrompt = true;
+                        dlgSave.Filter = "All Files|*.*|Project Files|*.copierproject";
+                        dlgSave.FilterIndex = 1;
+
+                        if (dlgSave.ShowDialog() == DialogResult.OK)
+                        {
+                            SaveCurrentProjectTo(dlgSave.FileName);
+                        }
+                    }
+                }
+            }
+
+            SaveSettings();
         }
     }
 }

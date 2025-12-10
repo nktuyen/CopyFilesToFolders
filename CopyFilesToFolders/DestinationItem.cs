@@ -98,11 +98,10 @@ namespace CopyFilesToFolders
             }
         }
 
-        public DestinationItem()
+        public DestinationItem(int lineHeight = 24)
         {
             InitializeComponent();
-            this.LineHeight = 24;
-
+            this.LineHeight = lineHeight;
         }
 
         private void ArrangeControls()

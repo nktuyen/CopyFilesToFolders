@@ -28,5 +28,11 @@ namespace CopyFilesToFolders
         {
             txtWildcard.Text = this.Wildcard;
         }
+
+        private void NameFilterSettingsForm_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.KeyCode == Keys.Escape)
+                this.Close();
+        }
     }
 }
