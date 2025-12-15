@@ -148,6 +148,9 @@ namespace CopyFilesToFolders
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            TabImageList.Images.Add(Properties.Resources.AddProfile);
+            MainTabControl.ImageList = TabImageList;
+
             LoadSettings();
             PopulateRecentFiles();
             loadRecentProjectToolStripMenuItem.Checked = this.LoadRecentProject;
@@ -199,7 +202,6 @@ namespace CopyFilesToFolders
 
             btnAddFiles.Enabled = this.CurrentProjectName != null && MainTabControl.Visible;
             btnAddFilesinFolder.Enabled = this.CurrentProjectName != null && MainTabControl.Visible;
-            btnAddProfile.Enabled = this.CurrentProjectName != null && MainTabControl.Visible;
         }
 
         private void addFilesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -216,6 +218,28 @@ namespace CopyFilesToFolders
             if (editor == null)
                 return;
             editor.AddFilesInFolder();
+        }
+
+        private string GenerateTabPageTitle(string template)
+        {
+            string res = template;
+            int count = 0;
+            bool existing = true;
+            while (existing)
+            {
+                existing = false;
+                foreach (TabPage page in MainTabControl.TabPages)
+                {
+                    if (page.Text.ToLower() == res.ToLower())
+                    {
+                        existing = true;
+                        count++;
+                        res = string.Format("{0} {1}", template, count);
+                        break;
+                    }
+                }
+            }
+            return res;
         }
 
         private void btnAddFiles_Click(object sender, EventArgs e)
@@ -236,7 +260,7 @@ namespace CopyFilesToFolders
         private void addProfileToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ProfileNameForm frm = new ProfileNameForm();
-            frm.ProfileName = "New Profile";
+            frm.ProfileName = GenerateTabPageTitle("New Profile");
             if (frm.ShowDialog() != DialogResult.OK)
                 return;
             foreach (TabPage page in MainTabControl.TabPages)
@@ -250,12 +274,13 @@ namespace CopyFilesToFolders
 
             TabPage newPage = new TabPage(frm.ProfileName);
             FileListEditor filesEditor = new FileListEditor(frm.ProfileName);
+            newPage.Tag = filesEditor;
             filesEditor.Parent = newPage;
             filesEditor.Dock = DockStyle.Fill;
             filesEditor.FileFilters = this.FileFilters;
             filesEditor.Changed += new EventHandler(FileListChanged);
             newPage.Controls.Add(filesEditor);
-            MainTabControl.TabPages.Add(newPage);
+            MainTabControl.TabPages.Insert(MainTabControl.TabPages.Count - 1, newPage);
             MainTabControl.Visible = true;
             MainTabControl.SelectedTab = newPage;
             this.CurrentProjectChanged = true;
@@ -354,7 +379,9 @@ namespace CopyFilesToFolders
                     writer.WriteStartElement("Profiles");
                     foreach (TabPage page in MainTabControl.TabPages)
                     {
-                        FileListEditor editor = page.Controls[0] as FileListEditor;
+                        if (page.Tag == null)
+                            continue;
+                        FileListEditor editor = page.Tag as FileListEditor;
                         if (editor != null)
                         {
                             editor.WriteXML(writer);
@@ -436,9 +463,15 @@ namespace CopyFilesToFolders
                 editor.FileFilters = this.FileFilters;
                 editor.Changed += new EventHandler(FileListChanged);
                 newPage.Controls.Add(editor);
+                newPage.Tag = editor;
                 MainTabControl.TabPages.Add(newPage);
                 MainTabControl.SelectedTab = newPage;
                 MainTabControl.Visible = true;
+
+                TabPage addButtonPage = new TabPage();
+                addButtonPage.ImageIndex = 0;
+                MainTabControl.TabPages.Add(addButtonPage);
+                addButtonPage.UseVisualStyleBackColor = true;
             }
 
             CurrentProject_Changed(this, new EventArgs());
@@ -456,6 +489,9 @@ namespace CopyFilesToFolders
             TabPage selectedPage = null;
             for (int i = 0; i < MainTabControl.TabCount; i++)
             {
+                TabPage page = MainTabControl.TabPages[i];
+                if (page.Tag == null)
+                    continue;
                 Rectangle tabRect = MainTabControl.GetTabRect(i);
                 if (tabRect.Contains(e.Location))
                 {
@@ -557,7 +593,7 @@ namespace CopyFilesToFolders
             dlgOpen.Filter = "All Files|*.*|Project Files|*.copierproject";
             dlgOpen.CheckPathExists = true;
             dlgOpen.CheckFileExists = true;
-            dlgOpen.FilterIndex = 1;
+            dlgOpen.FilterIndex = 2;
             if (dlgOpen.ShowDialog() != DialogResult.OK)
                 return;
 
@@ -589,7 +625,7 @@ namespace CopyFilesToFolders
                 dlgSave.OverwritePrompt = true;
                 dlgSave.CheckPathExists = true;
                 dlgSave.Filter = "All Files|*.*|Project Files|*.copierproject";
-                dlgSave.FilterIndex = 1;
+                dlgSave.FilterIndex = 2;
                 if (dlgSave.ShowDialog() != DialogResult.OK)
                     return;
 
@@ -817,6 +853,73 @@ namespace CopyFilesToFolders
             }
 
             SaveSettings();
+        }
+
+        private void MainTabControl_Selecting(object sender, TabControlCancelEventArgs e)
+        {
+            if(e.TabPageIndex == MainTabControl.TabPages.Count-1)
+            {
+                e.Cancel = true;
+            }
+        }
+
+        private void MainMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+
+        }
+
+        private void fileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void MainTabControl_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                var lastIndex = this.MainTabControl.TabCount - 1;
+                if (this.MainTabControl.GetTabRect(lastIndex).Contains(e.Location))
+                {
+                    addProfileToolStripMenuItem_Click(sender, e);
+                    this.MainTabControl.TabPages[lastIndex].UseVisualStyleBackColor = true;
+                }
+            }
+            else if(e.Button== MouseButtons.Middle)
+            {
+                var lastIndex = this.MainTabControl.TabCount - 1;
+                if (this.MainTabControl.GetTabRect(lastIndex).Contains(e.Location))
+                {
+                    //
+                }
+                else
+                {
+                    if(MainTabControl.TabPages.Count<=2)
+                    {
+                        MessageBox.Show("Cannot delete last profile\nClose project instead", "Delete Profile", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        return;
+                    }
+
+                    for (var i = 0; i < this.MainTabControl.TabPages.Count; i++)
+                    {
+                        var tabRect = this.MainTabControl.GetTabRect(i);
+                        if (tabRect.Contains(e.Location))
+                        {
+                            TabPage clickedPage=MainTabControl.TabPages[i];
+                            if(clickedPage.Tag != null)
+                            {
+                                if(MessageBox.Show("Are you sure?", "Delete Profile", MessageBoxButtons.YesNo, MessageBoxIcon.Question)== DialogResult.Yes)
+                                {
+                                    MainTabControl.TabPages.Remove(clickedPage);
+                                    if(MainTabControl.TabPages.Count == 1)
+                                    {
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

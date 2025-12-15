@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.MainMenu = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -53,10 +54,9 @@
             this.btnSaveProjectAs = new System.Windows.Forms.ToolStripButton();
             this.btnCloseProject = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.btnAddProfile = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.btnAddFiles = new System.Windows.Forms.ToolStripButton();
             this.btnAddFilesinFolder = new System.Windows.Forms.ToolStripButton();
+            this.TabImageList = new System.Windows.Forms.ImageList(this.components);
             this.MainMenu.SuspendLayout();
             this.MainToolbar.SuspendLayout();
             this.SuspendLayout();
@@ -71,6 +71,7 @@
             this.MainMenu.Name = "MainMenu";
             this.MainMenu.Size = new System.Drawing.Size(984, 24);
             this.MainMenu.TabIndex = 0;
+            this.MainMenu.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.MainMenu_ItemClicked);
             // 
             // fileToolStripMenuItem
             // 
@@ -85,6 +86,7 @@
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "&File";
+            this.fileToolStripMenuItem.Click += new System.EventHandler(this.fileToolStripMenuItem_Click);
             // 
             // newProjecttoolStripMenuItem
             // 
@@ -156,21 +158,21 @@
             // addProfileToolStripMenuItem
             // 
             this.addProfileToolStripMenuItem.Name = "addProfileToolStripMenuItem";
-            this.addProfileToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.addProfileToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
             this.addProfileToolStripMenuItem.Text = "Add Profile";
             this.addProfileToolStripMenuItem.Click += new System.EventHandler(this.addProfileToolStripMenuItem_Click);
             // 
             // addFilesToolStripMenuItem
             // 
             this.addFilesToolStripMenuItem.Name = "addFilesToolStripMenuItem";
-            this.addFilesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.addFilesToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
             this.addFilesToolStripMenuItem.Text = "Add Files";
             this.addFilesToolStripMenuItem.Click += new System.EventHandler(this.addFilesToolStripMenuItem_Click);
             // 
             // addFilesInFolderToolStripMenuItem
             // 
             this.addFilesInFolderToolStripMenuItem.Name = "addFilesInFolderToolStripMenuItem";
-            this.addFilesInFolderToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.addFilesInFolderToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
             this.addFilesInFolderToolStripMenuItem.Text = "Add Files in Folder";
             this.addFilesInFolderToolStripMenuItem.Click += new System.EventHandler(this.addFilesInFolderToolStripMenuItem_Click);
             // 
@@ -186,14 +188,14 @@
             // loadRecentProjectToolStripMenuItem
             // 
             this.loadRecentProjectToolStripMenuItem.Name = "loadRecentProjectToolStripMenuItem";
-            this.loadRecentProjectToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.loadRecentProjectToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.loadRecentProjectToolStripMenuItem.Text = "Load Recent Project";
             this.loadRecentProjectToolStripMenuItem.Click += new System.EventHandler(this.loadRecentProjectToolStripMenuItem_Click);
             // 
             // filterFilesToolStripMenuItem
             // 
             this.filterFilesToolStripMenuItem.Name = "filterFilesToolStripMenuItem";
-            this.filterFilesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.filterFilesToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.filterFilesToolStripMenuItem.Text = "File Filter";
             // 
             // MainTabControl
@@ -201,13 +203,15 @@
             this.MainTabControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.MainTabControl.Location = new System.Drawing.Point(1, 52);
+            this.MainTabControl.Location = new System.Drawing.Point(0, 52);
             this.MainTabControl.Name = "MainTabControl";
             this.MainTabControl.SelectedIndex = 0;
-            this.MainTabControl.Size = new System.Drawing.Size(985, 510);
+            this.MainTabControl.Size = new System.Drawing.Size(986, 510);
             this.MainTabControl.TabIndex = 1;
             this.MainTabControl.Visible = false;
+            this.MainTabControl.Selecting += new System.Windows.Forms.TabControlCancelEventHandler(this.MainTabControl_Selecting);
             this.MainTabControl.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.MainTabControl_MouseDoubleClick);
+            this.MainTabControl.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainTabControl_MouseDown);
             // 
             // MainToolbar
             // 
@@ -218,8 +222,6 @@
             this.btnSaveProjectAs,
             this.btnCloseProject,
             this.toolStripSeparator1,
-            this.btnAddProfile,
-            this.toolStripSeparator2,
             this.btnAddFiles,
             this.btnAddFilesinFolder});
             this.MainToolbar.Location = new System.Drawing.Point(0, 24);
@@ -286,22 +288,6 @@
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
             // 
-            // btnAddProfile
-            // 
-            this.btnAddProfile.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btnAddProfile.Enabled = false;
-            this.btnAddProfile.Image = global::CopyFilesToFolders.Properties.Resources.AddProfile;
-            this.btnAddProfile.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnAddProfile.Name = "btnAddProfile";
-            this.btnAddProfile.Size = new System.Drawing.Size(23, 22);
-            this.btnAddProfile.ToolTipText = "Add Profile";
-            this.btnAddProfile.Click += new System.EventHandler(this.btnAddProfile_Click);
-            // 
-            // toolStripSeparator2
-            // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
-            // 
             // btnAddFiles
             // 
             this.btnAddFiles.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
@@ -323,6 +309,12 @@
             this.btnAddFilesinFolder.Size = new System.Drawing.Size(23, 22);
             this.btnAddFilesinFolder.ToolTipText = "Add Files in Folder";
             this.btnAddFilesinFolder.Click += new System.EventHandler(this.btnAddFilesinFolder_Click);
+            // 
+            // TabImageList
+            // 
+            this.TabImageList.ColorDepth = System.Windows.Forms.ColorDepth.Depth8Bit;
+            this.TabImageList.ImageSize = new System.Drawing.Size(16, 16);
+            this.TabImageList.TransparentColor = System.Drawing.Color.Transparent;
             // 
             // MainForm
             // 
@@ -363,8 +355,6 @@
         private System.Windows.Forms.ToolStripButton btnSaveProjectAs;
         private System.Windows.Forms.ToolStripButton btnCloseProject;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
-        private System.Windows.Forms.ToolStripButton btnAddProfile;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripButton btnAddFiles;
         private System.Windows.Forms.ToolStripButton btnAddFilesinFolder;
         private System.Windows.Forms.ToolStripMenuItem closeProjecttoolStripMenuItem;
@@ -379,5 +369,6 @@
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem loadRecentProjectToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem filterFilesToolStripMenuItem;
+        private System.Windows.Forms.ImageList TabImageList;
     }
 }
