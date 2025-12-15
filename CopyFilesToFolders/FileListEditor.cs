@@ -71,6 +71,7 @@ namespace CopyFilesToFolders
                         ListViewItem item = lvFiles.Items.Add(count.ToString());
                         item.SubItems.Add(filePath);
                         item.SubItems.Add(string.Empty);
+                        btnRemoveAllFiles.Enabled = lvFiles.Items.Count > 0;
                     }
                 }
                 else if(reader.Name == "Destination")

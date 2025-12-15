@@ -331,6 +331,7 @@ namespace CopyFilesToFolders
                                     TabPage newPage = new TabPage(filesEditor.Title);
                                     filesEditor.Parent = newPage;
                                     newPage.Controls.Add(filesEditor);
+                                    newPage.Tag = filesEditor;
                                     MainTabControl.TabPages.Add(newPage);
                                     MainTabControl.Visible = true;
                                     MainTabControl.SelectedTab = newPage;
@@ -342,6 +343,11 @@ namespace CopyFilesToFolders
                             }
                         }
                     }
+
+                    TabPage addButtonPage = new TabPage();
+                    addButtonPage.ImageIndex = 0;
+                    MainTabControl.TabPages.Add(addButtonPage);
+                    addButtonPage.UseVisualStyleBackColor = true;
                 }
             }
             catch (System.Exception ex)
@@ -587,6 +593,40 @@ namespace CopyFilesToFolders
 
         private void openProjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (this.CurrentProjectName != null)
+            {
+                if (this.CurrentProjectChanged)
+                {
+                    DialogResult res = MessageBox.Show("Current project is not saved\nDo you want to save it now?", "New Project", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                    if (res == DialogResult.Cancel)
+                        return;
+
+                    if (res == DialogResult.Yes)
+                    {
+                        if (this.CurrentProjectName == string.Empty)
+                        {
+                            SaveFileDialog dlgSave = new SaveFileDialog();
+                            dlgSave.Title = "Save Project";
+                            dlgSave.OverwritePrompt = true;
+                            dlgSave.Filter = "All Files|*.*|Project Files|*.copierproject";
+                            dlgSave.FilterIndex = 1;
+
+                            if (dlgSave.ShowDialog() == DialogResult.OK)
+                            {
+                                if (RecentFiles.Contains(dlgSave.FileName))
+                                {
+                                    RecentFiles.Remove(dlgSave.FileName);
+                                }
+
+                                RecentFiles.Add(dlgSave.FileName);
+                                PopulateRecentFiles();
+                                SaveCurrentProjectTo(dlgSave.FileName);
+                            }
+                        }
+                    }
+                }
+            }
+
             OpenFileDialog dlgOpen = new OpenFileDialog();
             dlgOpen.Multiselect = false;
             dlgOpen.Title = "Open Project";
@@ -597,7 +637,13 @@ namespace CopyFilesToFolders
             if (dlgOpen.ShowDialog() != DialogResult.OK)
                 return;
 
-            if(LoadProjectFrom(dlgOpen.FileName))
+            MainTabControl.TabPages.Clear();
+            MainTabControl.Visible = false;
+            this.CurrentProjectName = null;
+            this.CurrentProjectChanged = false;
+            CurrentProject_Changed(this, new EventArgs());
+
+            if (LoadProjectFrom(dlgOpen.FileName))
             {
                 if (RecentFiles.Contains(dlgOpen.FileName))
                 {
@@ -920,6 +966,11 @@ namespace CopyFilesToFolders
                     }
                 }
             }
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Close();
         }
     }
 }
