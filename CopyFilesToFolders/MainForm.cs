@@ -177,15 +177,16 @@ namespace CopyFilesToFolders
 
             if(this.LoadRecentProject && RecentFiles.Count > 0)
             {
-                string filePath = RecentFiles[0];
-                if(LoadProjectFrom(filePath))
+                if (this.RecentFiles.Contains(this.CurrentProjectName))
                 {
-                    if (MainTabControl.TabCount > 0)
-                        MainTabControl.Visible = true;
+                    if (LoadProjectFrom(this.CurrentProjectName))
+                    {
+                        if (MainTabControl.TabCount > 0)
+                            MainTabControl.Visible = true;
 
-                    this.CurrentProjectName = filePath;
-                    this.CurrentProjectChanged = false;
-                    CurrentProject_Changed(this, new EventArgs());
+                        this.CurrentProjectChanged = false;
+                        CurrentProject_Changed(this, new EventArgs());
+                    }
                 }
             }
         }
@@ -785,6 +786,18 @@ namespace CopyFilesToFolders
                             if (objFileName != null)
                             {
                                 filePath = objFileName as string;
+                                if ((System.IO.File.Exists(filePath)) && !RecentFiles.Contains(filePath))
+                                    RecentFiles.Add(filePath);
+                            }
+                        }
+
+                        objFileName = recentFilesKey.GetValue(string.Empty);
+                        if (objFileName != null)
+                        {
+                            filePath = objFileName as string;
+                            if (System.IO.File.Exists(filePath))
+                            {
+                                this.CurrentProjectName = filePath;
                                 if (!RecentFiles.Contains(filePath))
                                     RecentFiles.Add(filePath);
                             }
@@ -860,6 +873,7 @@ namespace CopyFilesToFolders
                         else
                             break;
                     }
+                    recentFilesKey.SetValue(string.Empty, this.CurrentProjectName);
                 }
             }
             catch(System.Exception ex3)
