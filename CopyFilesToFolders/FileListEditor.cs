@@ -81,10 +81,15 @@ namespace CopyFilesToFolders
                     {
                         DestinationItem destinationItem = new DestinationItem();
                         destinationItem.Path = destPath;
+                        destinationItem.CustomButtonText = "x";
                         destinationItem.BrowseButtonClicked += new EventHandler(DestinationBrowserButton_Click);
                         destinationItem.CustomButtonClicked += new EventHandler(DestinationDeleteButton_Click);
                         destinationItem.CopyButtonClicked += new EventHandler(DestinationCopyButton_Click);
                         destinationItem.PathTextChanged += new EventHandler(DestinationPath_Changed);
+
+                        string hasCustomButton = reader.GetAttribute("HasCustomButton");
+                        if (hasCustomButton != null && (hasCustomButton == "1" || hasCustomButton == "true" || hasCustomButton == "yes"))
+                            destinationItem.HasCustomButton = true;
 
                         this.Destinations.Add(destinationItem);
                         ArrangeDestinations();
@@ -135,6 +140,7 @@ namespace CopyFilesToFolders
                             {
                                 writer.WriteAttributeString("Name", dest.Title);
                                 writer.WriteAttributeString("Path", dest.Path);
+                                writer.WriteAttributeString("HasCustomButton", dest.HasCustomButton ? "true" : "false");
                             }
                             writer.WriteEndElement();
                         }
