@@ -986,5 +986,11 @@ namespace CopyFilesToFolders
         {
             this.Close();
         }
+
+        private void alwaysOnTopToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            alwaysOnTopToolStripMenuItem.Checked = !alwaysOnTopToolStripMenuItem.Checked;
+            this.TopMost = alwaysOnTopToolStripMenuItem.Checked;
+        }
     }
 }

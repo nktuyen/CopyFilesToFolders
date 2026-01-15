@@ -57,6 +57,7 @@
             this.btnAddFiles = new System.Windows.Forms.ToolStripButton();
             this.btnAddFilesinFolder = new System.Windows.Forms.ToolStripButton();
             this.TabImageList = new System.Windows.Forms.ImageList(this.components);
+            this.alwaysOnTopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MainMenu.SuspendLayout();
             this.MainToolbar.SuspendLayout();
             this.SuspendLayout();
@@ -180,6 +181,7 @@
             // optionsToolStripMenuItem
             // 
             this.optionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.alwaysOnTopToolStripMenuItem,
             this.loadRecentProjectToolStripMenuItem,
             this.filterFilesToolStripMenuItem});
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
@@ -189,14 +191,14 @@
             // loadRecentProjectToolStripMenuItem
             // 
             this.loadRecentProjectToolStripMenuItem.Name = "loadRecentProjectToolStripMenuItem";
-            this.loadRecentProjectToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.loadRecentProjectToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.loadRecentProjectToolStripMenuItem.Text = "Load Recent Project";
             this.loadRecentProjectToolStripMenuItem.Click += new System.EventHandler(this.loadRecentProjectToolStripMenuItem_Click);
             // 
             // filterFilesToolStripMenuItem
             // 
             this.filterFilesToolStripMenuItem.Name = "filterFilesToolStripMenuItem";
-            this.filterFilesToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.filterFilesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.filterFilesToolStripMenuItem.Text = "File Filter";
             // 
             // MainTabControl
@@ -317,6 +319,13 @@
             this.TabImageList.ImageSize = new System.Drawing.Size(16, 16);
             this.TabImageList.TransparentColor = System.Drawing.Color.Transparent;
             // 
+            // alwaysOnTopToolStripMenuItem
+            // 
+            this.alwaysOnTopToolStripMenuItem.Name = "alwaysOnTopToolStripMenuItem";
+            this.alwaysOnTopToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.alwaysOnTopToolStripMenuItem.Text = "Always on top";
+            this.alwaysOnTopToolStripMenuItem.Click += new System.EventHandler(this.alwaysOnTopToolStripMenuItem_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -371,5 +380,6 @@
         private System.Windows.Forms.ToolStripMenuItem loadRecentProjectToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem filterFilesToolStripMenuItem;
         private System.Windows.Forms.ImageList TabImageList;
+        private System.Windows.Forms.ToolStripMenuItem alwaysOnTopToolStripMenuItem;
     }
 }
