@@ -87,6 +87,10 @@ namespace CopyFilesToFolders
                                 SaveCurrentProjectTo(dlgSave.FileName);
                             }
                         }
+                        else
+                        {
+                            SaveCurrentProjectTo(this.CurrentProjectName);
+                        }
                     }
                 }
             }
@@ -452,6 +456,10 @@ namespace CopyFilesToFolders
                                 SaveCurrentProjectTo(dlgSave.FileName);
                             }
                         }
+                        else
+                        {
+                            SaveCurrentProjectTo(this.CurrentProjectName);
+                        }
                     }
                 }
             }
@@ -556,6 +564,10 @@ namespace CopyFilesToFolders
                             PopulateRecentFiles();
                             SaveCurrentProjectTo(dlgSave.FileName);
                         }
+                    }
+                    else
+                    {
+                        SaveCurrentProjectTo(this.CurrentProjectName);
                     }
                 }
             }
@@ -908,6 +920,10 @@ namespace CopyFilesToFolders
                         {
                             SaveCurrentProjectTo(dlgSave.FileName);
                         }
+                    }
+                    else
+                    {
+                        SaveCurrentProjectTo(this.CurrentProjectName);
                     }
                 }
             }
