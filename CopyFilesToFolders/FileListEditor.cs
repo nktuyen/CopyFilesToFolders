@@ -29,6 +29,21 @@ namespace CopyFilesToFolders
         private string LastSelectedFolder { get; set; }
         public List<IFilter> FileFilters { get; set; }
         public event EventHandler Changed;
+        public Color DefaulBackColor
+        {
+            get
+            {
+                return SystemColors.Control;
+            }
+        }
+
+        public List<string> Files
+        {
+            get
+            {
+                return FileToInstancesMap.Keys.ToList<string>();
+            }
+        }
 
 
         public FileListEditor(string title = "")
@@ -67,10 +82,23 @@ namespace CopyFilesToFolders
                     if(System.IO.File.Exists(filePath))
                     {
                         int count = lvFiles.Items.Count;
+                        int instances = 0;
                         count++;
                         ListViewItem item = lvFiles.Items.Add(count.ToString());
                         item.SubItems.Add(filePath);
                         item.SubItems.Add(string.Empty);
+
+                        if (this.FileToInstancesMap.ContainsKey(filePath))
+                        {
+                            instances = this.FileToInstancesMap[filePath];
+                        }
+                        else
+                        {
+                            instances = 0;
+                        }
+                        instances++;
+                        this.FileToInstancesMap[filePath] = instances;
+
                         btnRemoveAllFiles.Enabled = lvFiles.Items.Count > 0;
                     }
                 }
@@ -155,22 +183,26 @@ namespace CopyFilesToFolders
             }
         }
 
-        public void AddFiles()
+        public void AddFiles(string[] files = null)
         {
-            OpenFileDialog dlgOpen = new OpenFileDialog();
-            dlgOpen.Title = "Choose Files";
-            dlgOpen.Filter = "All Files|*.*|EXE Files|*.exe|DLL Files|*.dll|OCX Files|*.ocx|TXT Files|*.txt|LOG Files|*.log|DOC Files|*.doc|DOCX Files|*.docx|XLS Files|*.xls|XLSX Files|*.xlsx|PPT Files|*.ppt|PPTX Files|*.pptx|HTML Files|*.html|HTM Files|*.htm";
-            dlgOpen.CheckPathExists = true;
-            dlgOpen.CheckFileExists = true;
-            dlgOpen.ShowReadOnly = true;
-            dlgOpen.Multiselect = true;
-            if (dlgOpen.ShowDialog() != DialogResult.OK)
-                return;
-
             int instances = 0;
             int count = lvFiles.Items.Count;
             bool satisfied = false;
-            foreach (string filePath in dlgOpen.FileNames)
+            string[] copyingFiles = files;
+            if(copyingFiles == null)
+            {
+                OpenFileDialog dlgOpen = new OpenFileDialog();
+                dlgOpen.Title = "Choose Files";
+                dlgOpen.Filter = "All Files|*.*|EXE Files|*.exe|DLL Files|*.dll|OCX Files|*.ocx|TXT Files|*.txt|LOG Files|*.log|DOC Files|*.doc|DOCX Files|*.docx|XLS Files|*.xls|XLSX Files|*.xlsx|PPT Files|*.ppt|PPTX Files|*.pptx|HTML Files|*.html|HTM Files|*.htm";
+                dlgOpen.CheckPathExists = true;
+                dlgOpen.CheckFileExists = true;
+                dlgOpen.ShowReadOnly = true;
+                dlgOpen.Multiselect = true;
+                if (dlgOpen.ShowDialog() != DialogResult.OK)
+                    return;
+                copyingFiles = dlgOpen.FileNames;
+            }
+            foreach (string filePath in copyingFiles)
             {
                 satisfied = false;
                 Debug.Print(filePath);

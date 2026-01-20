@@ -211,18 +211,18 @@ namespace CopyFilesToFolders
 
         private void addFilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FileListEditor editor = MainTabControl.SelectedTab.Controls[0] as FileListEditor;
-            if (editor == null)
+            FileListEditor filesEditor = MainTabControl.SelectedTab.Controls[0] as FileListEditor;
+            if (filesEditor == null)
                 return;
-            editor.AddFiles();
+            filesEditor.AddFiles();
         }
 
         private void addFilesInFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FileListEditor editor = MainTabControl.SelectedTab.Controls[0] as FileListEditor;
-            if (editor == null)
+            FileListEditor filesEditor = MainTabControl.SelectedTab.Controls[0] as FileListEditor;
+            if (filesEditor == null)
                 return;
-            editor.AddFilesInFolder();
+            filesEditor.AddFilesInFolder();
         }
 
         private string GenerateTabPageTitle(string template)
@@ -265,29 +265,67 @@ namespace CopyFilesToFolders
         private void addProfileToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ProfileNameForm frm = new ProfileNameForm();
-            frm.ProfileName = GenerateTabPageTitle("New Profile");
+            Dictionary<string, TabPage> profileNamesToPageMap = new Dictionary<string, TabPage>();
+            foreach(TabPage page in MainTabControl.TabPages)
+            {
+                if (page.Text != null && page.Text != string.Empty)
+                    profileNamesToPageMap[page.Text] = page;
+            }
+
+            frm.NewProfileName = GenerateTabPageTitle("New Profile");
+            frm.AvailableProfiles = profileNamesToPageMap.Keys.ToList<string>();
             if (frm.ShowDialog() != DialogResult.OK)
                 return;
             foreach (TabPage page in MainTabControl.TabPages)
             {
-                if (string.Compare(page.Text, frm.ProfileName, StringComparison.OrdinalIgnoreCase) == 0)
+                if (string.Compare(page.Text, frm.NewProfileName, StringComparison.OrdinalIgnoreCase) == 0)
                 {
-                    MessageBox.Show(string.Format("Profile with name \"{0}\" is already exist", frm.ProfileName), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(string.Format("Profile with name \"{0}\" is already exist", frm.NewProfileName), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
             }
 
-            TabPage newPage = new TabPage(frm.ProfileName);
-            FileListEditor filesEditor = new FileListEditor(frm.ProfileName);
+            TabPage newPage = new TabPage(frm.NewProfileName);
+            FileListEditor filesEditor = new FileListEditor(frm.NewProfileName);
             newPage.Tag = filesEditor;
             filesEditor.Parent = newPage;
             filesEditor.Dock = DockStyle.Fill;
             filesEditor.FileFilters = this.FileFilters;
             filesEditor.Changed += new EventHandler(FileListChanged);
+            filesEditor.BackColor = filesEditor.DefaulBackColor;
             newPage.Controls.Add(filesEditor);
             MainTabControl.TabPages.Insert(MainTabControl.TabPages.Count - 1, newPage);
             MainTabControl.Visible = true;
             MainTabControl.SelectedTab = newPage;
+
+            if(frm.CopyingProfileName != null)
+            {
+                if(!profileNamesToPageMap.ContainsKey(frm.CopyingProfileName))
+                {
+                    MessageBox.Show(string.Format("Profile with name {0} cannot be found", frm.CopyingProfileName), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                else
+                {
+                    TabPage copyingPage = null;
+                    try
+                    {
+                        copyingPage = profileNamesToPageMap[frm.CopyingProfileName];
+                        if(copyingPage !=null)
+                        {
+                            FileListEditor copyingFileListEditor = copyingPage.Controls[0] as FileListEditor;
+                            if(copyingFileListEditor != null)
+                            {
+                                filesEditor.AddFiles(copyingFileListEditor.Files.ToArray<string>());
+                            }
+                        }
+                    }
+                    catch(System.Exception ex)
+                    {
+                        Debug.Print(ex.Message);
+                    }
+                }
+            }
+
             this.CurrentProjectChanged = true;
             CurrentProject_Changed(this, new EventArgs());
         }
@@ -335,6 +373,7 @@ namespace CopyFilesToFolders
                                 {
                                     TabPage newPage = new TabPage(filesEditor.Title);
                                     filesEditor.Parent = newPage;
+                                    filesEditor.BackColor = filesEditor.DefaulBackColor;
                                     newPage.Controls.Add(filesEditor);
                                     newPage.Tag = filesEditor;
                                     MainTabControl.TabPages.Add(newPage);
@@ -392,10 +431,10 @@ namespace CopyFilesToFolders
                     {
                         if (page.Tag == null)
                             continue;
-                        FileListEditor editor = page.Tag as FileListEditor;
-                        if (editor != null)
+                        FileListEditor filesEditor = page.Tag as FileListEditor;
+                        if (filesEditor != null)
                         {
-                            editor.WriteXML(writer);
+                            filesEditor.WriteXML(writer);
                         }
                     }
                     writer.WriteEndElement();
@@ -472,13 +511,14 @@ namespace CopyFilesToFolders
             if(MainTabControl.TabCount <= 0)
             {
                 TabPage newPage = new TabPage("New Profile");
-                FileListEditor editor = new FileListEditor(newPage.Text);
-                editor.Parent = newPage;
-                editor.Dock = DockStyle.Fill;
-                editor.FileFilters = this.FileFilters;
-                editor.Changed += new EventHandler(FileListChanged);
-                newPage.Controls.Add(editor);
-                newPage.Tag = editor;
+                FileListEditor filesEditor = new FileListEditor(newPage.Text);
+                filesEditor.Parent = newPage;
+                filesEditor.BackColor = filesEditor.DefaulBackColor;
+                filesEditor.Dock = DockStyle.Fill;
+                filesEditor.FileFilters = this.FileFilters;
+                filesEditor.Changed += new EventHandler(FileListChanged);
+                newPage.Controls.Add(filesEditor);
+                newPage.Tag = filesEditor;
                 MainTabControl.TabPages.Add(newPage);
                 MainTabControl.SelectedTab = newPage;
                 MainTabControl.Visible = true;
@@ -524,10 +564,10 @@ namespace CopyFilesToFolders
                     if (newName != oldName)
                     {
                         selectedPage.Text = newName;
-                        FileListEditor editor = selectedPage.Controls[0] as FileListEditor;
-                        if (editor != null)
+                        FileListEditor filesEditor = selectedPage.Controls[0] as FileListEditor;
+                        if (filesEditor != null)
                         {
-                            editor.Title = newName;
+                            filesEditor.Title = newName;
                         }
                         this.CurrentProjectChanged = true;
                         CurrentProject_Changed(this, new EventArgs());
