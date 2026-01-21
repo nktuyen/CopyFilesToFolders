@@ -1026,7 +1026,9 @@ namespace CopyFilesToFolders
                                 if(MessageBox.Show("Are you sure?", "Delete Profile", MessageBoxButtons.YesNo, MessageBoxIcon.Question)== DialogResult.Yes)
                                 {
                                     MainTabControl.TabPages.Remove(clickedPage);
-                                    if(MainTabControl.TabPages.Count == 1)
+                                    this.CurrentProjectChanged = true;
+                                    CurrentProject_Changed(this, new EventArgs());
+                                    if (MainTabControl.TabPages.Count == 1)
                                     {
 
                                     }
