@@ -38,6 +38,38 @@ namespace CopyFilesToFolders
             this.CurrentProjectChanged = false;
         }
 
+
+        private void DisplayProjectName()
+        {
+            Assembly asm = null;
+            string appName = string.Empty;
+            try
+            {
+                asm = Assembly.GetExecutingAssembly();
+                if(asm != null)
+                {
+                    FileVersionInfo ver = FileVersionInfo.GetVersionInfo(asm.Location);
+                    if(ver != null)
+                        appName = ver.ProductName;
+                }
+            }
+            catch(System.Exception ex)
+            {
+                Debug.Print(ex.Message);
+            }
+            if (appName == string.Empty)
+                appName = "CopyFilesToFolders";
+
+            if(this.CurrentProjectName != null && this.CurrentProjectName != string.Empty)
+            {
+                this.Text = string.Format("{0} - {1}", appName, this.CurrentProjectName);
+            }
+            else
+            {
+                this.Text = appName;
+            }
+        }
+
         private void FilterMenuItem_Click(object sender, EventArgs e)
         {
             ToolStripMenuItem menuItem = sender as ToolStripMenuItem;
@@ -108,6 +140,8 @@ namespace CopyFilesToFolders
                 this.CurrentProjectChanged = false;
                 CurrentProject_Changed(this, new EventArgs());
             }
+
+            DisplayProjectName();
         }
 
         private void PopulateRecentFiles()
@@ -193,6 +227,8 @@ namespace CopyFilesToFolders
                     }
                 }
             }
+
+            DisplayProjectName();
         }
 
         private void CurrentProject_Changed(object sender, EventArgs e)
@@ -507,7 +543,8 @@ namespace CopyFilesToFolders
             MainTabControl.Visible = false;
             this.CurrentProjectName = string.Empty;
             this.CurrentProjectChanged = true;
-            
+            DisplayProjectName();
+
             if(MainTabControl.TabCount <= 0)
             {
                 TabPage newPage = new TabPage("New Profile");
@@ -616,6 +653,8 @@ namespace CopyFilesToFolders
             MainTabControl.Visible = false;
             this.CurrentProjectName = null;
             this.CurrentProjectChanged = false;
+            DisplayProjectName();
+
             CurrentProject_Changed(this, new EventArgs());
         }
 
@@ -711,6 +750,7 @@ namespace CopyFilesToFolders
 
                 this.CurrentProjectName = dlgOpen.FileName;
                 this.CurrentProjectChanged = false;
+                DisplayProjectName();
                 CurrentProject_Changed(this, new EventArgs());
             }
         }
@@ -737,6 +777,7 @@ namespace CopyFilesToFolders
                 PopulateRecentFiles();
 
                 this.CurrentProjectName = dlgSave.FileName;
+                DisplayProjectName();
             }
 
             if (SaveCurrentProjectTo(this.CurrentProjectName))
@@ -769,6 +810,7 @@ namespace CopyFilesToFolders
 
                 this.CurrentProjectName = dlgSave.FileName;
                 this.CurrentProjectChanged = false;
+                DisplayProjectName();
                 CurrentProject_Changed(this, new EventArgs());
             }
         }
@@ -850,6 +892,7 @@ namespace CopyFilesToFolders
                             if (System.IO.File.Exists(filePath))
                             {
                                 this.CurrentProjectName = filePath;
+                                DisplayProjectName();
                                 if (!RecentFiles.Contains(filePath))
                                     RecentFiles.Add(filePath);
                             }
