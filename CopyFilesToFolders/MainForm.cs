@@ -62,7 +62,7 @@ namespace CopyFilesToFolders
             {
                 if (this.CurrentProjectChanged)
                 {
-                    DialogResult res = MessageBox.Show("Current project is not saved\nDo you want to save it now?", "New Project", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                    DialogResult res = MessageBox.Show(this, "Current project is not saved\nDo you want to save it now?", "New Project", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                     if (res == DialogResult.Cancel)
                         return;
 
@@ -76,7 +76,7 @@ namespace CopyFilesToFolders
                             dlgSave.Filter = "All Files|*.*|Project Files|*.copierproject";
                             dlgSave.FilterIndex = 1;
 
-                            if (dlgSave.ShowDialog() == DialogResult.OK)
+                            if (dlgSave.ShowDialog(this) == DialogResult.OK)
                             {
                                 if (RecentFiles.Contains(dlgSave.FileName))
                                 {
@@ -143,7 +143,7 @@ namespace CopyFilesToFolders
             {
                 NameFilterSettingsForm frm = new NameFilterSettingsForm();
                 frm.Wildcard=nameFilter.Wildcard;
-                if (frm.ShowDialog() == DialogResult.OK)
+                if (frm.ShowDialog(this) == DialogResult.OK)
                 {
                     nameFilter.Wildcard = frm.Wildcard;
                 }
@@ -274,13 +274,13 @@ namespace CopyFilesToFolders
 
             frm.NewProfileName = GenerateTabPageTitle("New Profile");
             frm.AvailableProfiles = profileNamesToPageMap.Keys.ToList<string>();
-            if (frm.ShowDialog() != DialogResult.OK)
+            if (frm.ShowDialog(this) != DialogResult.OK)
                 return;
             foreach (TabPage page in MainTabControl.TabPages)
             {
                 if (string.Compare(page.Text, frm.NewProfileName, StringComparison.OrdinalIgnoreCase) == 0)
                 {
-                    MessageBox.Show(string.Format("Profile with name \"{0}\" is already exist", frm.NewProfileName), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(this, string.Format("Profile with name \"{0}\" is already exist", frm.NewProfileName), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
             }
@@ -302,7 +302,7 @@ namespace CopyFilesToFolders
             {
                 if(!profileNamesToPageMap.ContainsKey(frm.CopyingProfileName))
                 {
-                    MessageBox.Show(string.Format("Profile with name {0} cannot be found", frm.CopyingProfileName), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(this, string.Format("Profile with name {0} cannot be found", frm.CopyingProfileName), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 else
                 {
@@ -396,7 +396,7 @@ namespace CopyFilesToFolders
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Debug.Print(ex.Message);
                 if (System.IO.File.Exists(path))
                 {
@@ -445,7 +445,7 @@ namespace CopyFilesToFolders
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Debug.Print(ex.Message);
                 if (System.IO.File.Exists(path))
                 {
@@ -469,7 +469,7 @@ namespace CopyFilesToFolders
             {
                 if (this.CurrentProjectChanged)
                 {
-                    DialogResult res = MessageBox.Show("Current project is not saved\nDo you want to save it now?", "New Project", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                    DialogResult res = MessageBox.Show(this, "Current project is not saved\nDo you want to save it now?", "New Project", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                     if (res == DialogResult.Cancel)
                         return;
 
@@ -483,7 +483,7 @@ namespace CopyFilesToFolders
                             dlgSave.Filter = "All Files|*.*|Project Files|*.copierproject";
                             dlgSave.FilterIndex = 1;
 
-                            if (dlgSave.ShowDialog() == DialogResult.OK)
+                            if (dlgSave.ShowDialog(this) == DialogResult.OK)
                             {
                                 if (RecentFiles.Contains(dlgSave.FileName))
                                 {
@@ -558,7 +558,7 @@ namespace CopyFilesToFolders
             {
                 string oldName = selectedPage.Text;
                 PageRenameForm frm = new PageRenameForm(selectedPage.Text);
-                if (frm.ShowDialog() == DialogResult.OK)
+                if (frm.ShowDialog(this) == DialogResult.OK)
                 {
                     string newName = frm.PageName;
                     if (newName != oldName)
@@ -580,7 +580,7 @@ namespace CopyFilesToFolders
         {
             if (this.CurrentProjectChanged)
             {
-                DialogResult res = MessageBox.Show("Current project is not saved\nDo you want to save it now?", "New Project", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                DialogResult res = MessageBox.Show(this, "Current project is not saved\nDo you want to save it now?", "New Project", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                 if (res == DialogResult.Cancel)
                     return;
 
@@ -594,7 +594,7 @@ namespace CopyFilesToFolders
                         dlgSave.Filter = "All Files|*.*|Project Files|*.copierproject";
                         dlgSave.FilterIndex = 1;
 
-                        if (dlgSave.ShowDialog() == DialogResult.OK)
+                        if (dlgSave.ShowDialog(this) == DialogResult.OK)
                         {
                             if (RecentFiles.Contains(dlgSave.FileName))
                             {
@@ -650,7 +650,7 @@ namespace CopyFilesToFolders
             {
                 if (this.CurrentProjectChanged)
                 {
-                    DialogResult res = MessageBox.Show("Current project is not saved\nDo you want to save it now?", "New Project", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                    DialogResult res = MessageBox.Show(this, "Current project is not saved\nDo you want to save it now?", "New Project", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                     if (res == DialogResult.Cancel)
                         return;
 
@@ -664,7 +664,7 @@ namespace CopyFilesToFolders
                             dlgSave.Filter = "All Files|*.*|Project Files|*.copierproject";
                             dlgSave.FilterIndex = 1;
 
-                            if (dlgSave.ShowDialog() == DialogResult.OK)
+                            if (dlgSave.ShowDialog(this) == DialogResult.OK)
                             {
                                 if (RecentFiles.Contains(dlgSave.FileName))
                                 {
@@ -687,7 +687,7 @@ namespace CopyFilesToFolders
             dlgOpen.CheckPathExists = true;
             dlgOpen.CheckFileExists = true;
             dlgOpen.FilterIndex = 2;
-            if (dlgOpen.ShowDialog() != DialogResult.OK)
+            if (dlgOpen.ShowDialog(this) != DialogResult.OK)
                 return;
 
             MainTabControl.TabPages.Clear();
@@ -725,7 +725,7 @@ namespace CopyFilesToFolders
                 dlgSave.CheckPathExists = true;
                 dlgSave.Filter = "All Files|*.*|Project Files|*.copierproject";
                 dlgSave.FilterIndex = 2;
-                if (dlgSave.ShowDialog() != DialogResult.OK)
+                if (dlgSave.ShowDialog(this) != DialogResult.OK)
                     return;
 
                 if (RecentFiles.Contains(dlgSave.FileName))
@@ -754,7 +754,7 @@ namespace CopyFilesToFolders
             dlgSave.CheckPathExists = true;
             dlgSave.Filter = "All Files|*.*|Project Files|*.copierproject";
             dlgSave.FilterIndex = 1;
-            if (dlgSave.ShowDialog() != DialogResult.OK)
+            if (dlgSave.ShowDialog(this) != DialogResult.OK)
                 return;
 
             if (SaveCurrentProjectTo(dlgSave.FileName))
@@ -939,7 +939,7 @@ namespace CopyFilesToFolders
         {
             if (this.CurrentProjectChanged)
             {
-                DialogResult res = MessageBox.Show("Current project is not saved\nDo you want to save it now?", "New Project", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                DialogResult res = MessageBox.Show(this, "Current project is not saved\nDo you want to save it now?", "New Project", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                 if (res == DialogResult.Cancel)
                 {
                     e.Cancel = true;
@@ -956,7 +956,7 @@ namespace CopyFilesToFolders
                         dlgSave.Filter = "All Files|*.*|Project Files|*.copierproject";
                         dlgSave.FilterIndex = 1;
 
-                        if (dlgSave.ShowDialog() == DialogResult.OK)
+                        if (dlgSave.ShowDialog(this) == DialogResult.OK)
                         {
                             SaveCurrentProjectTo(dlgSave.FileName);
                         }
@@ -1011,7 +1011,7 @@ namespace CopyFilesToFolders
                 {
                     if(MainTabControl.TabPages.Count<=2)
                     {
-                        MessageBox.Show("Cannot delete last profile\nClose project instead", "Delete Profile", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show(this, "Cannot delete last profile\nClose project instead", "Delete Profile", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         return;
                     }
 
@@ -1023,7 +1023,7 @@ namespace CopyFilesToFolders
                             TabPage clickedPage=MainTabControl.TabPages[i];
                             if(clickedPage.Tag != null)
                             {
-                                if(MessageBox.Show("Are you sure?", "Delete Profile", MessageBoxButtons.YesNo, MessageBoxIcon.Question)== DialogResult.Yes)
+                                if(MessageBox.Show(this, "Are you sure?", "Delete Profile", MessageBoxButtons.YesNo, MessageBoxIcon.Question)== DialogResult.Yes)
                                 {
                                     MainTabControl.TabPages.Remove(clickedPage);
                                     this.CurrentProjectChanged = true;
